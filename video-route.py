@@ -16,6 +16,18 @@ from urllib import request, parse
 # External Modules
 try:
     import serial
+    import serial.tools.list_ports
+
+    def serialByName(name):
+
+        # Lazy wrap both
+        if "/dev/" in name:
+            return name
+
+        for port in serial.tools.list_ports.comports():
+            if port[1] == name:
+                return port[0]
+
 except Exception as e:
     print("Need to install Python module [pyserial]")
     sys.exit(1)
@@ -59,8 +71,8 @@ class WebInterface(object):
 
         self.host = ip
         self.port = port
-        self.serial = serial
-        self.serial_rt4k = "/dev/ttyUSB2"
+        self.serial_crosspoint = serialByName("USB-Serial Controller")
+        self.serial_rt4k = serialByName("FT232R USB UART - FT232R USB UART")
         self.toggle = not split
 
         self.config={
@@ -189,7 +201,7 @@ function system(event) {{
 </body>
 """
     def cmd_crosspoint(self,cmd):
-        cross = serial.Serial("/dev/ttyUSB0",9600,timeout=30,parity=serial.PARITY_NONE,)
+        cross = serial.Serial(self.serial_crosspoint,9600,timeout=30,parity=serial.PARITY_NONE,)
         cross.write( bytes(cmd,'ascii',errors='ignore') )
 
     def cmd_rt4k(self,cmd):
@@ -254,8 +266,8 @@ function system(event) {{
     def web_crosspoint(self):
         data = self.request.get_json()
 
-        cross = serial.Serial("/dev/ttyUSB0",9600,timeout=30,parity=serial.PARITY_NONE,)
-        rt4k = serial.Serial("/dev/ttyUSB2",115200,timeout=30,parity=serial.PARITY_NONE,)
+        cross = serial.Serial(self.serial_crosspoint,9600,timeout=30,parity=serial.PARITY_NONE,)
+        rt4k = serial.Serial(self.serial_rt4k,115200,timeout=30,parity=serial.PARITY_NONE,)
         pprint(data)
         match data['cmd']:
             case "snes":
@@ -277,13 +289,7 @@ function system(event) {{
 
     def web_system(self):
         data = self.request.get_json()
-
-
-
-        cross = serial.Serial("/dev/ttyUSB0",9600,timeout=30,parity=serial.PARITY_NONE,)
         pprint(data)
-
-
         self.cmd_rt4k(self.config[data['cmd']]["rt4k"])
         self.cmd_dvs510(self.config[data['cmd']]["dvs510"])
         for tie in self.config[data['cmd']]["crosspoint"]:
@@ -351,11 +357,17 @@ def main():
                     epilog='')
     parser.add_argument('-i', '--ip', help="Web server listening IP", default="0.0.0.0")
     parser.add_argument('-p', '--port', help="Web server listening IP", default="5003")
-    parser.add_argument('-s', '--serial', help="Serial port", default="/dev/ttyUSB0")
+    parser.add_argument('-s', '--serial', help="Serial port, can also be a name instead of device path", default="/dev/ttyUSB0")
+    parser.add_argument('-S', '--serial-names', help="List serial port names", action='store_true')
     parser.add_argument('-l', '--split', help="Split power button instead of toggle", action='store_true')
     parser.add_argument('other', help="", default=None, nargs=argparse.REMAINDER)
     args = parser.parse_args()
 
+    if args.serial_names:
+        for port in serial.tools.list_ports.comports():
+            if port[1] != "n/a":
+                print( port[0]+":"+port[1] )
+        sys.exit(0)
 
 
     # Run web server
