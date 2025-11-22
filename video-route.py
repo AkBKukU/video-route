@@ -79,18 +79,27 @@ class WebInterface(object):
                 "snes":{
                     "rt4k":"remote prof1",
                     "dvs510":3,
+                    "in1606":4,
                     "crosspoint":["1*1!","1*2!","1*3!"]
                     },
                 "n64":{
                     "rt4k":"remote prof2",
                     "dvs510":3,
+                    "in1606":4,
                     "crosspoint":["2*1!","2*2!","2*3!"]
                     },
                 "dc":{
                     "rt4k":"remote prof3",
                     "dvs510":5,
+                    "in1606":4,
                     "crosspoint":["11*1!","3*2!","3*4!"]
                     },
+                "hdmi":{
+                    "rt4k":"remote prof3",
+                    "dvs510":10,
+                    "in1606":3,
+                    "crosspoint":["11*1!","3*2!","3*4!"]
+                    }
             }
 
         self.cmd_crosspoint("\x1bZXXX")
@@ -198,6 +207,9 @@ function system(event) {{
 <a onclick="system(event)" >
 <div name="dc" class="clearButton">Dreamcast</div>
 </a>
+<a onclick="system(event)" >
+<div name="hdmi" class="clearButton">HDMI</div>
+</a>
 </body>
 """
     def cmd_crosspoint(self,cmd):
@@ -212,6 +224,15 @@ function system(event) {{
         try:
             endpoint=f"http://192.168.0.109/?cmd={cmd}!"
             req =  request.Request(endpoint)
+            resp = request.urlopen(req)
+        except Exception as e:
+            pprint(e)
+
+    def cmd_in1606(self,cmd):
+        try:
+            endpoint=f"http://192.168.0.214/api/swis/resources"
+            payload = f'[{{"uri":"/av/out/1/input/main","value":"{cmd}"}}]'
+            req =  request.Request(endpoint, data=payload.encode("utf-8"))
             resp = request.urlopen(req)
         except Exception as e:
             pprint(e)
@@ -292,6 +313,7 @@ function system(event) {{
         pprint(data)
         self.cmd_rt4k(self.config[data['cmd']]["rt4k"])
         self.cmd_dvs510(self.config[data['cmd']]["dvs510"])
+        self.cmd_in1606(self.config[data['cmd']]["in1606"])
         for tie in self.config[data['cmd']]["crosspoint"]:
                 self.cmd_crosspoint(tie)
 
