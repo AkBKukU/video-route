@@ -49,11 +49,11 @@ class WebInterface(object):
 
     """
 
-    def __init__(self,ip,port,serial,split):
+    def __init__(self,args):
 
         self.host_dir=os.path.realpath(__file__).replace(os.path.basename(__file__),"")
         self.app = self.Flask("SRT Notes")
-        self.app.logger.disabled = True
+        #self.app.logger.disabled = True
         #log = logging.getLogger('werkzeug')
         #log.disabled = True
 
@@ -64,45 +64,50 @@ class WebInterface(object):
         # Define routes in class to use with flask
         self.app.add_url_rule('/','home', self.index)
         # Define routes in class to use with flask
-        self.app.add_url_rule('/crosspoint','crosspoint', self.web_crosspoint,methods=["POST"])
-        self.app.add_url_rule('/dvs510','dvs510', self.web_dvs510,methods=["POST"])
-        self.app.add_url_rule('/in1606','in1606', self.web_in1606,methods=["POST"])
         self.app.add_url_rule('/system','system', self.web_system,methods=["POST"])
 
-        self.host = ip
-        self.port = port
+        self.host = args.ip
+        self.port = args.port
         self.serial_crosspoint = serialByName("USB-Serial Controller")
         self.serial_rt4k = serialByName("FT232R USB UART - FT232R USB UART")
-        self.toggle = not split
+        self.toggle = not args.split
 
-        self.config={
+        if args.json is not None and os.path.exists(args.json):
+            with open(args.json, newline='') as jsonfile:
+                self.config=json.load(jsonfile)
+        else:
+            self.config={
                 "snes":{
+                    "name":"SNES",
                     "rt4k":"remote prof1",
                     "dvs510":3,
                     "in1606":4,
                     "crosspoint":["1*1!","1*2!","1*3!"]
                     },
                 "n64":{
+                    "name":"N64",
                     "rt4k":"remote prof2",
                     "dvs510":3,
                     "in1606":4,
                     "crosspoint":["2*1!","2*2!","2*3!"]
                     },
                 "dc":{
+                    "name":"Dreamcast",
                     "rt4k":"remote prof3",
                     "dvs510":5,
                     "in1606":4,
                     "crosspoint":["11*1!","3*2!","3*4!"]
                     },
                 "hdmi":{
+                    "name":"HDMI CRT",
                     "rt4k":"remote prof3",
                     "dvs510":10,
                     "in1606":3,
                     "crosspoint":["11*1!","3*2!","3*4!"]
                     }
             }
-
-        self.cmd_crosspoint("\x1bZXXX")
+        if not args.reset_skip:
+            self.cmd_crosspoint("\x1bZXXX")
 
 
 
@@ -128,58 +133,56 @@ class WebInterface(object):
             self.rip_thread.terminate()
             self.rip_thread.join()
 
+# Hardware commands
+
+    def cmd_crosspoint(self,cmd):
+        cross = serial.Serial(self.serial_crosspoint,9600,timeout=30,parity=serial.PARITY_NONE,)
+        cross.write( bytes(cmd,'ascii',errors='ignore') )
+
+
+    def cmd_rt4k(self,cmd):
+        rt4k = serial.Serial(self.serial_rt4k,115200,timeout=30,parity=serial.PARITY_NONE,)
+        rt4k.write( bytes(cmd+"\n",'ascii',errors='ignore') )
+
+
+    def cmd_dvs510(self,cmd):
+        try:
+            endpoint=f"http://192.168.0.109/?cmd={cmd}!"
+            req =  request.Request(endpoint)
+            resp = request.urlopen(req)
+        except Exception as e:
+            pprint(e)
+
+
+    def cmd_in1606(self,cmd):
+        try:
+            endpoint=f"http://192.168.0.214/api/swis/resources"
+            payload = f'[{{"uri":"/av/out/1/input/main","value":"{cmd}"}}]'
+            req =  request.Request(endpoint, data=payload.encode("utf-8"))
+            resp = request.urlopen(req)
+        except Exception as e:
+            pprint(e)
+
+# Endpoints
 
     def index(self):
         """ Simple class function to send HTML to browser """
         return f"""
 <script>
-function in1606(event) {{
-	fetch("/in1606", {{
-		method: 'post',
-	   headers: {{
-		   "Content-Type": "application/json",
-		   'Accept':'application/json'
-	   }},
-	   body: JSON.stringify({{"cmd":event.target.attributes.name.nodeValue}}),
-	}}).then(() => {{
-		// Do Nothing
-	}});
-}};
-
-function dvs510(event) {{
-	fetch("/dvs510", {{
-		method: 'post',
-	   headers: {{
-		   "Content-Type": "application/json",
-		   'Accept':'application/json'
-	   }},
-	   body: JSON.stringify({{"cmd":event.target.attributes.name.nodeValue}}),
-	}}).then(() => {{
-		// Do Nothing
-	}});
-}};
-
-function crosspoint(event) {{
-	fetch("/crosspoint", {{
-		method: 'post',
-	   headers: {{
-		   "Content-Type": "application/json",
-		   'Accept':'application/json'
-	   }},
-	   body: JSON.stringify({{"cmd":event.target.attributes.name.nodeValue}}),
-	}}).then(() => {{
-		// Do Nothing
-	}});
-}};
 
 function system(event) {{
+        if ("source" in event.target.attributes)
+        {{
+            data={{"source":event.target.attributes.source.nodeValue}}
+        }}
+
 	fetch("/system", {{
 		method: 'post',
 	   headers: {{
 		   "Content-Type": "application/json",
 		   'Accept':'application/json'
 	   }},
-	   body: JSON.stringify({{"cmd":event.target.attributes.name.nodeValue}}),
+	   body: JSON.stringify(data),
 	}}).then(() => {{
 		// Do Nothing
 	}});
@@ -192,131 +195,25 @@ function system(event) {{
 }}
 </style>
 <body style="background-color:#111;">
-<a onclick="in1606(event)" >
-<div name="4" class="clearButton">Retrotink 4K</div>
-</a>
-<a onclick="in1606(event)" >
-<div name="3" class="clearButton">Extron Scaler</div>
-</a>
 <a onclick="system(event)" >
-<div name="snes" class="clearButton">SNES</div>
-</a>
-<a onclick="system(event)" >
-<div name="n64" class="clearButton">N64</div>
-</a>
-<a onclick="system(event)" >
-<div name="dc" class="clearButton">Dreamcast</div>
-</a>
-<a onclick="system(event)" >
-<div name="hdmi" class="clearButton">HDMI</div>
+    <div source="snes" class="clearButton">SNES</div>
+    <div source="n64" class="clearButton">N64</div>
+    <div source="dc" class="clearButton">Dreamcast</div>
+    <div source="hdmi" class="clearButton">HDMI</div>
 </a>
 </body>
 """
-    def cmd_crosspoint(self,cmd):
-        cross = serial.Serial(self.serial_crosspoint,9600,timeout=30,parity=serial.PARITY_NONE,)
-        cross.write( bytes(cmd,'ascii',errors='ignore') )
-
-    def cmd_rt4k(self,cmd):
-        rt4k = serial.Serial(self.serial_rt4k,115200,timeout=30,parity=serial.PARITY_NONE,)
-        rt4k.write( bytes(cmd+"\n",'ascii',errors='ignore') )
-
-    def cmd_dvs510(self,cmd):
-        try:
-            endpoint=f"http://192.168.0.109/?cmd={cmd}!"
-            req =  request.Request(endpoint)
-            resp = request.urlopen(req)
-        except Exception as e:
-            pprint(e)
-
-    def cmd_in1606(self,cmd):
-        try:
-            endpoint=f"http://192.168.0.214/api/swis/resources"
-            payload = f'[{{"uri":"/av/out/1/input/main","value":"{cmd}"}}]'
-            req =  request.Request(endpoint, data=payload.encode("utf-8"))
-            resp = request.urlopen(req)
-        except Exception as e:
-            pprint(e)
-
-    def web_in1606(self):
-        print("New Request")
-        data = self.request.get_json()
-        pprint(data)
-
-        # Send command
-        try:
-            # Post Method is invoked if data != None
-            endpoint=f"http://192.168.0.214/api/swis/resources"
-            payload = f'[{{"uri":"/av/out/1/input/main","value":"{data['cmd']}"}}]'
-            print("payload: "+payload)
-
-            #data=json.dumps(f'[{{["uri":"/av/out/1/input/main","value":"{data['cmd']}"]}}]').encode("utf-8")
-            req =  request.Request(endpoint, data=payload.encode("utf-8"))
-
-            # Response
-            resp = request.urlopen(req)
-        except Exception as e:
-            # Web server probably isn't running, fail silently
-            return
-
-        return "sure"
-
-    def web_dvs510(self):
-        print("New Request")
-        data = self.request.get_json()
-        pprint(data)
-
-        # Send command
-        try:
-            # Post Method is invoked if data != None
-            endpoint=f"http://192.168.0.109/?cmd={data['cmd']}!"
-
-            #data=json.dumps(f'[{{["uri":"/av/out/1/input/main","value":"{data['cmd']}"]}}]').encode("utf-8")
-            req =  request.Request(endpoint)
-
-            # Response
-            resp = request.urlopen(req)
-
-        except Exception as e:
-            # Web server probably isn't running, fail silently
-            pprint(e)
-            return
-
-        return "sure"
-
-
-    def web_crosspoint(self):
-        data = self.request.get_json()
-
-        cross = serial.Serial(self.serial_crosspoint,9600,timeout=30,parity=serial.PARITY_NONE,)
-        rt4k = serial.Serial(self.serial_rt4k,115200,timeout=30,parity=serial.PARITY_NONE,)
-        pprint(data)
-        match data['cmd']:
-            case "snes":
-                # Send command
-                cross.write( bytes("1*2!",'ascii',errors='ignore') )
-                cross.write( bytes("1*3!",'ascii',errors='ignore') )
-
-            case "n64":
-                # Send command
-                cross.write( bytes("2*2!",'ascii',errors='ignore') )
-                cross.write( bytes("2*3!",'ascii',errors='ignore') )
-
-            case "dc":
-                # Send command
-                cross.write( bytes("3*2!",'ascii',errors='ignore') )
-                cross.write( bytes("3*4!",'ascii',errors='ignore') )
-        return "sure"
 
 
     def web_system(self):
         data = self.request.get_json()
         pprint(data)
-        self.cmd_rt4k(self.config[data['cmd']]["rt4k"])
-        self.cmd_dvs510(self.config[data['cmd']]["dvs510"])
-        self.cmd_in1606(self.config[data['cmd']]["in1606"])
-        for tie in self.config[data['cmd']]["crosspoint"]:
-                self.cmd_crosspoint(tie)
-
+        if "source" in data:
+            self.cmd_rt4k(self.config[data['source']]["rt4k"])
+            self.cmd_dvs510(self.config[data['source']]["dvs510"])
+            self.cmd_in1606(self.config[data['source']]["in1606"])
+            for tie in self.config[data['source']]["crosspoint"]:
+                    self.cmd_crosspoint(tie)
 
         return "sure"
 
@@ -348,11 +245,11 @@ def exit_handler(sig, frame):
 
 
 
-async def startWeb(ip,port,serial,split):
+async def startWeb(args):
 
     # Internal Modules
     global server
-    server = WebInterface(ip,port,serial,split)
+    server = WebInterface(args)
 
     """ Start connections to async modules """
 
@@ -379,7 +276,8 @@ def main():
                     epilog='')
     parser.add_argument('-i', '--ip', help="Web server listening IP", default="0.0.0.0")
     parser.add_argument('-p', '--port', help="Web server listening IP", default="5003")
-    parser.add_argument('-s', '--serial', help="Serial port, can also be a name instead of device path", default="/dev/ttyUSB0")
+    parser.add_argument('-j', '--json', help="JSON config file", default=None)
+    parser.add_argument('-r', '--reset-skip', help="Do not re-initialize hardware", action='store_true')
     parser.add_argument('-S', '--serial-names', help="List serial port names", action='store_true')
     parser.add_argument('-l', '--split', help="Split power button instead of toggle", action='store_true')
     parser.add_argument('other', help="", default=None, nargs=argparse.REMAINDER)
@@ -393,7 +291,7 @@ def main():
 
 
     # Run web server
-    asyncio.run(startWeb(args.ip,args.port,args.serial,args.split))
+    asyncio.run(startWeb(args))
     sys.exit(0)
 
 
