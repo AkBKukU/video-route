@@ -73,6 +73,7 @@ class WebInterface(object):
         self.toggle = not args.split
 
         if args.json is not None and os.path.exists(args.json):
+            print("Reading from config")
             with open(args.json, newline='') as jsonfile:
                 self.config=json.load(jsonfile)
         else:
@@ -167,7 +168,7 @@ class WebInterface(object):
 
     def index(self):
         """ Simple class function to send HTML to browser """
-        return f"""
+        output=f"""
 <script>
 
 function system(event) {{
@@ -196,13 +197,16 @@ function system(event) {{
 </style>
 <body style="background-color:#111;">
 <a onclick="system(event)" >
-    <div source="snes" class="clearButton">SNES</div>
-    <div source="n64" class="clearButton">N64</div>
-    <div source="dc" class="clearButton">Dreamcast</div>
-    <div source="hdmi" class="clearButton">HDMI</div>
+"""
+        for key, value in self.config.items():
+
+            output+=f"<div source=\"{key}\" class=\"clearButton\">{value["name"]}</div>"
+
+        output+=f"""
 </a>
 </body>
 """
+        return output
 
 
     def web_system(self):
