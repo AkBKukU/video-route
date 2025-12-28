@@ -207,7 +207,7 @@ function system(event) {{
 }};
 
 </script>
-<link rel="stylesheet" type="text/css" href="/static/style.css" ></style>
+<link rel="stylesheet" type="text/css" href="/static/site/style.css" ></style>
 <body style="background-color:#111;">
 <ul onclick="system(event)" >
 '''
@@ -227,17 +227,18 @@ function system(event) {{
                 if "overlay" in value:
                     # Provided Image with overlay
                     output+=f'''
-        <img style="background: url('/static/{value["icon"]}');" src="/static/video-{value["overlay"]}.png" source="{key}">
+        <img src="/static/icons/{value["icon"]}" source="{key}">
+        <div class="overlay {value["overlay"]}" source="{key}"></div>
     '''
                 else:
                     # Provided Image
                     output+=f'''
-        <img src="/static/{value["icon"]}" source="{key}">
+        <img src="/static/icons/{value["icon"]}" source="{key}">
     '''
             else:
                     # Stock Image
                     output+=f'''
-        <img src="/static/smpte.png" source="{key}">
+        <img src="/static/site/smpte.png" source="{key}">
     '''
             # Text
             if "description" in value:

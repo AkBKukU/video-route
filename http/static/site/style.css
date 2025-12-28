@@ -1,0 +1,153 @@
+h3 {
+    margin: 0em;
+}
+ul, body {
+    padding: 0em;
+    margin: 0em;
+}
+
+.buttons {
+    display: inline-block;
+    position: relative;
+    margin: 1em;
+    background-color: #eee;
+    color: #111;
+    padding: 1em;
+    border-radius: 1em;
+    text-align: center;
+    vertical-align: top;
+}
+
+.buttons > img {
+    display: block;
+    padding: 0em;
+    margin: 0em auto ;
+    margin-bottom: 0.5em ;
+    max-height: 100px;
+    max-width: 300px;
+    min-width: 100px;
+}
+
+
+.list {
+    display: block;
+    position: relative;
+    margin: 1em;
+    background-color: #eee;
+    color: #111;
+    padding: 1em;
+    border-radius: 1em;
+    text-align: left;
+    vertical-align: top;
+}
+
+.list .text-block{
+    display: inline-block;
+    vertical-align: top;
+    padding-left: 1em ;
+}
+
+.list > img {
+    display: inline-block;
+    vertical-align: top;
+    padding: 0em;
+    margin: 0em auto ;
+    margin-bottom: 0.5em ;
+    max-height: 100px;
+    max-width: 300px;
+    min-width: 100px;
+}
+
+.overlay {
+    position: absolute;
+    vertical-align: top;
+    top:0px;
+    left:0px;
+    height: 100px;
+    width: 100%;
+
+}
+
+.pixel
+{
+    background: no-repeat url('/static/site/video-pixel.png');
+    background-position: center;
+}
+.pixel-hover:hover
+{
+    background: no-repeat url('/static/site/video-pixel.png');
+    background-position: center;
+}
+
+.list > .pixel
+{
+    background-position: right;
+}
+.list > .pixel-hover:hover
+{
+    background-position: right;
+}
+
+
+.full
+{
+    background: no-repeat url('/static/site/video-full.png');
+    background-position: center;
+}
+.full-hover:hover
+{
+    background: no-repeat url('/static/site/video-full.png');
+    background-position: center;
+}
+
+.list > .full
+{
+    background-position: right;
+}
+.list > .full-hover:hover
+{
+    background-position: right;
+}
+
+
+.wide
+{
+    background: no-repeat url('/static/site/video-wide.png');
+    background-position: center;
+}
+.wide-hover:hover
+{
+    background: no-repeat url('/static/site/video-wide.png');
+    background-position: center;
+}
+
+.list > .wide
+{
+    background-position: right;
+}
+.list > .wide-hover:hover
+{
+    background-position: right;
+}
+
+
+
+.crop
+{
+    background: no-repeat url('/static/site/video-crop.png');
+    background-position: center;
+}
+.crop-hover:hover
+{
+    background: no-repeat url('/static/site/video-crop.png');
+    background-position: center;
+}
+
+.list > .crop
+{
+    background-position: right;
+}
+.list > .crop-hover:hover
+{
+    background-position: right;
+}
