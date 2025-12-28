@@ -28,8 +28,41 @@ try:
             if port[1] == name:
                 return port[0]
 
+        # They know better probably
+        return name
+
 except Exception as e:
     print("Need to install Python module [pyserial]")
+    sys.exit(1)
+
+# External Modules
+try:
+    import telnetlib3
+
+    async def telnet_commands(ip,cmds,skip=0):
+        reader, writer = await telnetlib3.open_connection(ip, 23)
+
+        while skip:
+            inp = await reader.readuntil()
+            skip-=1
+
+        codes = {
+            "#CR":"\r",
+            "#ESC":"\x1b"
+            }
+
+        response = None
+        for cmd in cmds:
+            for key, value in codes.items():
+                cmd = cmd.replace(key,value)
+            writer.write(cmd)
+            response = await reader.readuntil()
+            print(response.decode("ascii"))
+
+        return response.decode("ascii")
+
+except Exception as e:
+    print("Need to install Python module [telnetlib3]")
     sys.exit(1)
 
 class WebInterface(object):
@@ -68,8 +101,6 @@ class WebInterface(object):
 
         self.host = args.ip
         self.port = args.port
-        self.serial_crosspoint = serialByName("USB-Serial Controller")
-        self.serial_rt4k = serialByName("FT232R USB UART - FT232R USB UART")
         self.toggle = not args.split
 
         if args.json is not None and os.path.exists(args.json):
@@ -78,36 +109,45 @@ class WebInterface(object):
                 self.config=json.load(jsonfile)
         else:
             self.config={
-                "snes":{
-                    "name":"SNES",
-                    "rt4k":"remote prof1",
-                    "dvs510":3,
-                    "in1606":4,
-                    "crosspoint":["1*1!","1*2!","1*3!"]
-                    },
-                "n64":{
-                    "name":"N64",
-                    "rt4k":"remote prof2",
-                    "dvs510":3,
-                    "in1606":4,
-                    "crosspoint":["2*1!","2*2!","2*3!"]
-                    },
-                "dc":{
-                    "name":"Dreamcast",
-                    "rt4k":"remote prof3",
-                    "dvs510":5,
-                    "in1606":4,
-                    "crosspoint":["11*1!","3*2!","3*4!"]
-                    },
-                "hdmi":{
-                    "name":"HDMI CRT",
-                    "rt4k":"remote prof3",
-                    "dvs510":10,
-                    "in1606":3,
-                    "crosspoint":["11*1!","3*2!","3*4!"]
-                    }
+                "video":{
+                    "rt4k":None,
+                    "crosspoint":None,
+                    "in1606":None,
+                    "dvs510":None,
+                },
+                "sources":{
+                    "snes":{
+                        "name":"SNES",
+                        "rt4k":"remote prof1",
+                        "dvs510":3,
+                        "in1606":4,
+                        "crosspoint":["1*1!","1*2!","1*3!"]
+                        },
+                    "n64":{
+                        "name":"N64",
+                        "rt4k":"remote prof2",
+                        "dvs510":3,
+                        "in1606":4,
+                        "crosspoint":["2*1!","2*2!","2*3!"]
+                        },
+                    "dc":{
+                        "name":"Dreamcast",
+                        "rt4k":"remote prof3",
+                        "dvs510":5,
+                        "in1606":4,
+                        "crosspoint":["11*1!","3*2!","3*4!"]
+                        },
+                    "hdmi":{
+                        "name":"HDMI CRT",
+                        "rt4k":"remote prof3",
+                        "dvs510":10,
+                        "in1606":3,
+                        "crosspoint":["11*1!","3*2!","3*4!"]
+                        }
+                }
             }
-        if not args.reset_skip:
+
+        if not args.reset_skip and self.config["video"]["crosspoint"] is not None:
             self.cmd_crosspoint("\x1bZXXX")
 
 
@@ -136,31 +176,31 @@ class WebInterface(object):
 
 # Hardware commands
 
-    def cmd_crosspoint(self,cmd):
-        cross = serial.Serial(self.serial_crosspoint,9600,timeout=30,parity=serial.PARITY_NONE,)
-        cross.write( bytes(cmd,'ascii',errors='ignore') )
+    def cmd_crosspoint(self,cmds):
+        cross = serial.Serial(serialByName(self.config["video"]["crosspoint"]),9600,timeout=30,parity=serial.PARITY_NONE)
+        for cmd in cmds:
+            cross.write( bytes(cmd,'ascii',errors='ignore') )
 
 
-    def cmd_rt4k(self,cmd):
-        rt4k = serial.Serial(self.serial_rt4k,115200,timeout=30,parity=serial.PARITY_NONE,)
-        rt4k.write( bytes(cmd+"\n",'ascii',errors='ignore') )
+    def cmd_rt4k(self,cmds):
+        rt4k = serial.Serial(serialByName(self.config["video"]["rt4k"]),115200,timeout=30,parity=serial.PARITY_NONE)
+        for cmd in cmds:
+            rt4k.write( bytes(cmd+"\n",'ascii',errors='ignore') )
 
 
-    def cmd_dvs510(self,cmd):
+    def cmd_dvs510(self,cmds):
         try:
-            endpoint=f"http://192.168.0.109/?cmd={cmd}!"
-            req =  request.Request(endpoint)
-            resp = request.urlopen(req)
+            for cmd in cmds:
+                endpoint=f"http://{self.config["video"]["dvs510"]}/?cmd={cmd}"
+                req =  request.Request(endpoint)
+                resp = request.urlopen(req)
         except Exception as e:
             pprint(e)
 
 
-    def cmd_in1606(self,cmd):
+    def cmd_in1606(self,cmds):
         try:
-            endpoint=f"http://192.168.0.214/api/swis/resources"
-            payload = f'[{{"uri":"/av/out/1/input/main","value":"{cmd}"}}]'
-            req =  request.Request(endpoint, data=payload.encode("utf-8"))
-            resp = request.urlopen(req)
+            asyncio.run(telnet_commands(self.config["video"]["in1606"],cmds,skip=3))
         except Exception as e:
             pprint(e)
 
@@ -192,18 +232,35 @@ function system(event) {{
 </script>
 <style>
 .clearButton {{
-    background-color: rgba(0, 0, 0, 0);
+    display: inline-block;
+    margin: 1em;
+    background-color: #eee;
+    color: #111;
+    padding: 1em;
+    border-radius: 1em;
+    text-align: center;
+}}
+
+.clearButton > img {{
+    display: block;
+    margin: 0em auto ;
+    margin-bottom: 0.5em ;
+    height: 100px;
+    width: 100px;
 }}
 </style>
 <body style="background-color:#111;">
-<a onclick="system(event)" >
+<ul onclick="system(event)" >
 """
-        for key, value in self.config.items():
+        for key, value in self.config["sources"].items():
 
-            output+=f"<div source=\"{key}\" class=\"clearButton\">{value["name"]}</div>"
+            if "icon" in value:
+                output+=f"<li source=\"{key}\" class=\"clearButton\"><img src=\"/static/{value["icon"]}\" source=\"{key}\" alt=\"{value["name"]}\">{value["name"]}</li>"
+            else:
+                output+=f"<li source=\"{key}\" class=\"clearButton\">{value["name"]}</li>"
 
         output+=f"""
-</a>
+</ul>
 </body>
 """
         return output
@@ -213,11 +270,14 @@ function system(event) {{
         data = self.request.get_json()
         pprint(data)
         if "source" in data:
-            self.cmd_rt4k(self.config[data['source']]["rt4k"])
-            self.cmd_dvs510(self.config[data['source']]["dvs510"])
-            self.cmd_in1606(self.config[data['source']]["in1606"])
-            for tie in self.config[data['source']]["crosspoint"]:
-                    self.cmd_crosspoint(tie)
+            if self.config["video"]["rt4k"] is not None:
+                self.cmd_rt4k(self.config["sources"][data['source']]["rt4k"])
+            if self.config["video"]["dvs510"] is not None:
+                self.cmd_dvs510(self.config["sources"][data['source']]["dvs510"])
+            if self.config["video"]["in1606"] is not None:
+                self.cmd_in1606(self.config["sources"][data['source']]["in1606"])
+            if self.config["video"]["crosspoint"] is not None:
+                self.cmd_crosspoint(self.config["sources"][data['source']]["crosspoint"])
 
         return "sure"
 
