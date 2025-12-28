@@ -103,6 +103,12 @@ class WebInterface(object):
         self.port = args.port
         self.toggle = not args.split
 
+        self.video_controlers = {}
+        self.video_controlers["crosspoint"] = self.cmd_crosspoint
+        self.video_controlers["rt4k"] = self.cmd_rt4k
+        self.video_controlers["in1606"] = self.cmd_in1606
+        self.video_controlers["dvs510"] = self.cmd_dvs510
+
         if args.json is not None and os.path.exists(args.json):
             print("Reading from config")
             with open(args.json, newline='') as jsonfile:
@@ -115,36 +121,7 @@ class WebInterface(object):
                     "in1606":None,
                     "dvs510":None,
                 },
-                "sources":{
-                    "snes":{
-                        "name":"SNES",
-                        "rt4k":"remote prof1",
-                        "dvs510":3,
-                        "in1606":4,
-                        "crosspoint":["1*1!","1*2!","1*3!"]
-                        },
-                    "n64":{
-                        "name":"N64",
-                        "rt4k":"remote prof2",
-                        "dvs510":3,
-                        "in1606":4,
-                        "crosspoint":["2*1!","2*2!","2*3!"]
-                        },
-                    "dc":{
-                        "name":"Dreamcast",
-                        "rt4k":"remote prof3",
-                        "dvs510":5,
-                        "in1606":4,
-                        "crosspoint":["11*1!","3*2!","3*4!"]
-                        },
-                    "hdmi":{
-                        "name":"HDMI CRT",
-                        "rt4k":"remote prof3",
-                        "dvs510":10,
-                        "in1606":3,
-                        "crosspoint":["11*1!","3*2!","3*4!"]
-                        }
-                }
+                "sources":{}
             }
 
         if not args.reset_skip and self.config["video"]["crosspoint"] is not None:
@@ -191,7 +168,7 @@ class WebInterface(object):
     def cmd_dvs510(self,cmds):
         try:
             for cmd in cmds:
-                endpoint=f"http://{self.config["video"]["dvs510"]}/?cmd={cmd}"
+                endpoint=f'http://{self.config["video"]["dvs510"]}/?cmd={cmd}'
                 req =  request.Request(endpoint)
                 resp = request.urlopen(req)
         except Exception as e:
@@ -208,7 +185,7 @@ class WebInterface(object):
 
     def index(self):
         """ Simple class function to send HTML to browser """
-        output=f"""
+        output=f'''
 <script>
 
 function system(event) {{
@@ -230,39 +207,60 @@ function system(event) {{
 }};
 
 </script>
-<style>
-.clearButton {{
-    display: inline-block;
-    margin: 1em;
-    background-color: #eee;
-    color: #111;
-    padding: 1em;
-    border-radius: 1em;
-    text-align: center;
-}}
-
-.clearButton > img {{
-    display: block;
-    margin: 0em auto ;
-    margin-bottom: 0.5em ;
-    height: 100px;
-    width: 100px;
-}}
-</style>
+<link rel="stylesheet" type="text/css" href="/static/style.css" ></style>
 <body style="background-color:#111;">
 <ul onclick="system(event)" >
-"""
+'''
         for key, value in self.config["sources"].items():
 
-            if "icon" in value:
-                output+=f"<li source=\"{key}\" class=\"clearButton\"><img src=\"/static/{value["icon"]}\" source=\"{key}\" alt=\"{value["name"]}\">{value["name"]}</li>"
+            if "description" in value:
+                output+=f'''
+    <li source="{key}" class="list">
+    '''
             else:
-                output+=f"<li source=\"{key}\" class=\"clearButton\">{value["name"]}</li>"
+                output+=f'''
+    <li source="{key}" class="buttons">
+    '''
+            # Image Setup
+            if "icon" in value:
 
-        output+=f"""
+                if "overlay" in value:
+                    # Provided Image with overlay
+                    output+=f'''
+        <img style="background: url('/static/{value["icon"]}');" src="/static/video-{value["overlay"]}.png" source="{key}">
+    '''
+                else:
+                    # Provided Image
+                    output+=f'''
+        <img src="/static/{value["icon"]}" source="{key}">
+    '''
+            else:
+                    # Stock Image
+                    output+=f'''
+        <img src="/static/smpte.png" source="{key}">
+    '''
+            # Text
+            if "description" in value:
+                output+=f'''
+        <div class="text-block">
+    '''
+            if "name" in value:
+                output+=f'''
+        <h3 class="name">{value["name"]}</h3>
+    '''
+            if "description" in value:
+                output+=f'''
+        <p class="description">{value["description"]}</p>
+        </div>
+    '''
+            output+=f'''
+    </li>
+    '''
+
+        output+=f'''
 </ul>
 </body>
-"""
+'''
         return output
 
 
@@ -270,14 +268,11 @@ function system(event) {{
         data = self.request.get_json()
         pprint(data)
         if "source" in data:
-            if self.config["video"]["rt4k"] is not None:
-                self.cmd_rt4k(self.config["sources"][data['source']]["rt4k"])
-            if self.config["video"]["dvs510"] is not None:
-                self.cmd_dvs510(self.config["sources"][data['source']]["dvs510"])
-            if self.config["video"]["in1606"] is not None:
-                self.cmd_in1606(self.config["sources"][data['source']]["in1606"])
-            if self.config["video"]["crosspoint"] is not None:
-                self.cmd_crosspoint(self.config["sources"][data['source']]["crosspoint"])
+            for key, value in self.config["sources"][data['source']].items():
+
+                if key in self.video_controlers and self.config["video"][key] is not None:
+                    self.video_controlers[key](value)
+
 
         return "sure"
 
