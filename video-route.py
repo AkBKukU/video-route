@@ -39,6 +39,11 @@ except Exception as e:
 try:
     import telnetlib3
 
+    json_codes = {
+        "#CR":"\r",
+        "#ESC":"\x1b"
+        }
+
     async def telnet_commands(ip,cmds,skip=0):
         reader, writer = await telnetlib3.open_connection(ip, 23)
 
@@ -46,14 +51,9 @@ try:
             inp = await reader.readuntil()
             skip-=1
 
-        codes = {
-            "#CR":"\r",
-            "#ESC":"\x1b"
-            }
-
         response = None
         for cmd in cmds:
-            for key, value in codes.items():
+            for key, value in json_codes.items():
                 cmd = cmd.replace(key,value)
             writer.write(cmd)
             response = await reader.readuntil()
@@ -168,6 +168,8 @@ class WebInterface(object):
     def cmd_dvs510(self,cmds):
         try:
             for cmd in cmds:
+                for key, value in json_codes.items():
+                    cmd = cmd.replace(key,value)
                 endpoint=f'http://{self.config["video"]["dvs510"]}/?cmd={cmd}'
                 req =  request.Request(endpoint)
                 resp = request.urlopen(req)
@@ -239,9 +241,13 @@ function system(event) {{
                     output+=f'''
     <fieldset>
     '''
+                    checked=""
+                    if "hide" in value:
+                        if value["hide"]:
+                            checked="checked"
                     if "name" in value:
                         output+=f'''
-        <input type=checkbox id="{prefix+key}"/>
+        <input type=checkbox id="{prefix+key}" {checked}/>
         <legend><label for="{prefix+key}">{value["name"]}</label></legend>
         <ul>
     '''
