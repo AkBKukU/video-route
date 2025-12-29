@@ -211,52 +211,7 @@ function system(event) {{
 <body style="background-color:#111;">
 <ul onclick="system(event)" >
 '''
-        for key, value in self.config["sources"].items():
-
-            if "description" in value:
-                output+=f'''
-    <li source="{key}" class="list">
-    '''
-            else:
-                output+=f'''
-    <li source="{key}" class="buttons">
-    '''
-            # Image Setup
-            if "icon" in value:
-
-                if "overlay" in value:
-                    # Provided Image with overlay
-                    output+=f'''
-        <img src="/static/icons/{value["icon"]}" source="{key}">
-        <div class="overlay {value["overlay"]}" source="{key}"></div>
-    '''
-                else:
-                    # Provided Image
-                    output+=f'''
-        <img src="/static/icons/{value["icon"]}" source="{key}">
-    '''
-            else:
-                    # Stock Image
-                    output+=f'''
-        <img src="/static/site/smpte.png" source="{key}">
-    '''
-            # Text
-            if "description" in value:
-                output+=f'''
-        <div class="text-block">
-    '''
-            if "name" in value:
-                output+=f'''
-        <h3 class="name">{value["name"]}</h3>
-    '''
-            if "description" in value:
-                output+=f'''
-        <p class="description">{value["description"]}</p>
-        </div>
-    '''
-            output+=f'''
-    </li>
-    '''
+        output+=self.build_sources(self.config["sources"])
 
         output+=f'''
 </ul>
@@ -269,13 +224,117 @@ function system(event) {{
         data = self.request.get_json()
         pprint(data)
         if "source" in data:
-            for key, value in self.config["sources"][data['source']].items():
+            self.parse_sources(data['source'], self.config["sources"])
 
-                if key in self.video_controlers and self.config["video"][key] is not None:
-                    self.video_controlers[key](value)
 
 
         return "sure"
+
+    def build_sources(self,source,prefix=""):
+        output=""
+        for key, value in source.items():
+
+            if isinstance(value, dict):
+                if "sources" in value:
+                    output+=f'''
+    <fieldset>
+    '''
+                    if "name" in value:
+                        output+=f'''
+        <input type=checkbox id="{prefix+key}"/>
+        <legend><label for="{prefix+key}">{value["name"]}</label></legend>
+        <ul>
+    '''
+                    # Image Setup
+                    if "icon" in value:
+
+                        output+=f'''
+                <li class="buttons"><img src="/static/icons/{value["icon"]}" source="{prefix+key}"></li>
+            '''
+                    output+=self.build_sources(value["sources"],prefix+key+"|")
+
+                    output+=f'''
+        </ul>
+        '''
+                    # Text
+                    if "description" in value:
+                        output+=f'''
+        <div class="text-block" source="{prefix+key}">
+    '''
+
+                    output+=f'''
+    </fieldset>
+    '''
+                    continue
+
+            if "description" in value:
+                output+=f'''
+    <li source="{prefix+key}" class="list">
+    '''
+            else:
+                output+=f'''
+    <li source="{prefix+key}" class="buttons">
+    '''
+            # Image Setup
+            if "icon" in value:
+
+                if value["icon"] == "wide":
+                    value["icon"] = "../site/video-wide.png"
+                if value["icon"] == "full":
+                    value["icon"] = "../site/video-full.png"
+                if value["icon"] == "pixel":
+                    value["icon"] = "../site/video-pixel.png"
+                if value["icon"] == "crop":
+                    value["icon"] = "../site/video-crop.png"
+
+                if value["icon"] is None:
+                    # Stock Image
+                    output+=f'''
+        <img src="/static/site/smpte.png" source="{prefix+key}">
+    '''
+                else:
+                    # Provided Image
+                    output+=f'''
+        <img src="/static/icons/{value["icon"]}" source="{prefix+key}">
+    '''
+            if "overlay" in value:
+                # Provided Image with overlay
+                output+=f'''
+        <div class="overlay {value["overlay"]}" source="{prefix+key}"></div>
+    '''
+            # Text
+            if "description" in value:
+                output+=f'''
+        <div class="text-block" source="{prefix+key}">
+    '''
+            if "name" in value:
+                output+=f'''
+        <h3 class="name" source="{prefix+key}">{value["name"]}</h3>
+    '''
+            if "description" in value:
+                output+=f'''
+        <p class="description" source="{prefix+key}">{value["description"]}</p>
+        </div>
+    '''
+            output+=f'''
+    </li>
+    '''
+
+        return output
+
+    def parse_sources(self, source, config):
+
+        if source.split("|")[0] in config:
+            for key, value in config[source.split("|")[0]].items():
+
+                if isinstance(value, dict):
+                    print(key+" is dict")
+                    self.parse_sources(source[len(source.split("|")[0])+1:], value)
+
+                print(key+" not dict")
+                if key in self.video_controlers and self.config["video"][key] is not None:
+                    self.video_controlers[key](value)
+
 
 # ------ Async Server Handler ------
 

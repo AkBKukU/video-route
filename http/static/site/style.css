@@ -6,6 +6,50 @@ ul, body {
     margin: 0em;
 }
 
+fieldset > ul > li.buttons,
+fieldset > ul > li.list
+{
+    margin: 0.25em 0em;
+    padding: 0.5em 1em;
+}
+fieldset > input[type=checkbox]
+{
+    display: none;
+}
+
+fieldset > input[type=checkbox]:checked + legend
+{
+    background-color: #f00;
+}
+
+fieldset > input[type=checkbox]:checked + legend + ul
+{
+    display: none;
+    max-height: 1em;
+}
+
+fieldset {
+    display: block;
+    position: relative;
+    margin: 1em;
+    padding: 0em;
+    background-color: #aaa;
+    color: #111;
+    padding: 0.5em;
+    border: none;
+    border-radius: 1em;
+    text-align: left;
+    vertical-align: top;
+}
+
+fieldset legend {
+    background-color: #ccc;
+    color: #111;
+    padding: 0em 1em;
+    border-radius: 1em;
+
+}
+
 .buttons {
     display: inline-block;
     position: relative;
@@ -25,7 +69,6 @@ ul, body {
     margin-bottom: 0.5em ;
     max-height: 100px;
     max-width: 300px;
-    min-width: 100px;
 }
 
 
@@ -55,7 +98,6 @@ ul, body {
     margin-bottom: 0.5em ;
     max-height: 100px;
     max-width: 300px;
-    min-width: 100px;
 }
 
 .overlay {
