@@ -108,6 +108,7 @@ class WebInterface(object):
         self.video_controlers["rt4k"] = self.cmd_rt4k
         self.video_controlers["in1606"] = self.cmd_in1606
         self.video_controlers["dvs510"] = self.cmd_dvs510
+        self.video_controlers["dtp84"] = self.cmd_dtp84
 
         if args.json is not None and os.path.exists(args.json):
             print("Reading from config")
@@ -120,6 +121,7 @@ class WebInterface(object):
                     "crosspoint":None,
                     "in1606":None,
                     "dvs510":None,
+                    "dtp84":None
                 },
                 "sources":{}
             }
@@ -180,6 +182,12 @@ class WebInterface(object):
     def cmd_in1606(self,cmds):
         try:
             asyncio.run(telnet_commands(self.config["video"]["in1606"],cmds,skip=3))
+        except Exception as e:
+            pprint(e)
+
+    def cmd_dtp84(self,cmds):
+        try:
+            asyncio.run(telnet_commands(self.config["video"]["dtp84"],cmds,skip=3))
         except Exception as e:
             pprint(e)
 
