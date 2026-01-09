@@ -1,0 +1,173 @@
+{
+    "video_controllers":{
+
+        "rt4k":{
+            "name":"Retrotink 4K",
+            "type":"serial",
+            "baud":115200,
+            "parity":"N",
+            "serial":"FT232R USB UART - FT232R USB UART",
+            "cmd_delay":0,
+            "line_end":"\n"
+        },
+        "crosspoint":{
+            "name":"Extron 300 Crosspoint",
+            "type":"serial",
+            "baud":9600,
+            "parity":"N",
+            "serial":"USB-Serial Controller",
+            "cmd_init":["#ESCZXXX"]
+        },
+        "in1606":{
+            "name":"Extron IN1606",
+            "type":"telnet",
+            "connection_skip":3,
+            "ip":"192.168.0.214",
+            "cmd_delay":0.05
+        },
+        "dvs510":{
+            "name":"Extron DVS 510",
+            "type":"http_get",
+            "ip":"192.168.0.109",
+            "uri":"/?cmd="
+        },
+        "dtp84":{
+            "name":"Extron DTP Crosspoint 84",
+            "type":"telnet",
+            "connection_skip":3,
+            "ip":"192.168.0.207",
+            "cmd_delay":0.05
+        }
+    },
+    "sources":{
+        "rt4k":{
+            "name":"RT4K Controls",
+            "sources":{
+                "rt4k-power":{
+                    "name":"Power",
+                    "rt4k":["remote pwr","pwr on"]
+                    },
+                "rt4k-phase":{
+                    "name":"Phase",
+                    "rt4k":["remote phase"]
+                    },
+                "rt4k-gain":{
+                    "name":"Gain",
+                    "rt4k":["remote gain"]
+                    },
+
+                "rt4k-stat":{
+                    "name":"Stat",
+                    "rt4k":["remote stat"]
+                    },
+                "rt4k-diag":{
+                    "name":"Diag",
+                    "rt4k":["remote diag"]
+                    },
+                "rt4k-menu":{
+                    "name":"Menu",
+                    "rt4k":["remote menu"]
+                    },
+                "rt4k-back":{
+                    "name":"Back",
+                    "rt4k":["remote back"]
+                    }
+            }
+        },
+	"dtp84_controls":{
+		"name":"Extron DTP 84",
+		"sources":{
+			"dtp84-input1":{
+			    "name":"Input 1",
+			    "dtp84":["1*1!#CR","1*2!#CR","1*3!#CR","1*4!#CR"]
+			    },
+			"dtp84-input2":{
+			    "name":"Input 2",
+			    "dtp84":["2*1!#CR","2*2!#CR","2*3!#CR","2*4!#CR"]
+			    },
+			"dtp84-input3":{
+			    "name":"Input 3",
+			    "dtp84":["3*1!#CR","3*2!#CR","3*3!#CR","3*4!#CR"]
+			    },
+			"dtp84-input4":{
+			    "name":"Input 4",
+			    "dtp84":["4*1!#CR","4*2!#CR","4*3!#CR","4*4!#CR"]
+			    },
+			"dtp84-input6":{
+			    "name":"Input 6",
+			    "dtp84":["6*1!#CR","6*2!#CR","6*3!#CR","6*4!#CR"]
+			    },
+			"dtp84-teston":{
+			    "name":"Test Pattern Enable",
+			    "dtp84":["#ESC03*05TEST#CR"]
+			    },
+			"dtp84-testoff":{
+			    "name":"Test Pattern Disable",
+			    "dtp84":["#ESC3*0TEST#CR"]
+			    },
+			"dtp84-1080out":{
+			    "name":"1080p Scaler Out",
+			    "dtp84":["#ESCA72*EDID#CR"]
+			    },
+			"dtp84-1080edid":{
+			    "name":"1080p EDID",
+			    "dtp84":["#ESC03*84RATE#CR"]
+			    },
+			"dtp84-full":{
+			    "name":"Scale Full",
+			    "dtp84":["#ESC3,0*0*1920*1080XIMG#CR"]
+			    },
+			"dtp84-43":{
+			    "name":"Scale 4:3",
+			    "dtp84":["#ESC3,300*0*1320*1080XIMG#CR"]
+			    },
+			"dtp84-condown":{
+			    "name":"Contrast Down",
+			    "dtp84":["#ESC3*10CONT#CR"]
+			    },
+			"dtp84-conup":{
+			    "name":"Contrast Up",
+			    "dtp84":["#ESC3*64CONT#CR"]
+			    },
+			"dtp84-outformat":{
+			    "name":"Output Format",
+			    "dtp84":["#ESC3*4VTPO#CR"]
+			    }
+		}
+	},
+        "hdmi-capture":{
+            "name":"Capture Override",
+            "hide":true,
+            "sources":{
+                "hdmi-dvs-510":{
+                    "name":"DVS-510",
+                    "in1606":["3!#CR"]
+                    },
+                "hdmi-rt4k":{
+                    "name":"RT4K",
+                    "in1606":["4!#CR"]
+                    }
+            }
+        },
+        "snes":{
+            "name":"Super Nintendo",
+            "icon":"Super Nintendo Entertainment System.png",
+            "sources":{
+                "snes512":{
+                    "rt4k":["remote prof1"],
+                    "name": "512px",
+                    "in1606":["1!#CR","1*4\\#CR","2*A#CR"],
+                    "dtp84":["2*1!#CR","2*2!#CR","2*3!#CR"],
+                    "crosspoint":["1*1!","1*2!","1*7!","11*3!"]
+                    },
+                "snes256":{
+                    "rt4k":["remote prof4"],
+                    "name": "256px",
+                    "in1606":["1!#CR","1*4\\#CR","2*A#CR"],
+                    "dtp84":["2*1!#CR","2*2!#CR","2*3!#CR"],
+                    "crosspoint":["1*1!","1*2!","1*7!","11*3!"]
+                    }
+                }
+            }
+    }
+}

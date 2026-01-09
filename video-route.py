@@ -6,12 +6,19 @@ import datetime
 import sys
 import re
 import os
+import time
 import json
 from pprint import pprint
 import asyncio
 import signal
 from multiprocessing import Process
 from urllib import request, parse
+
+# JSON doesn't support all escape sequences this is a substitute list to add them
+json_codes = {
+    "#CR":"\r",
+    "#ESC":"\x1b"
+}
 
 # External Modules
 try:
@@ -39,12 +46,8 @@ except Exception as e:
 try:
     import telnetlib3
 
-    json_codes = {
-        "#CR":"\r",
-        "#ESC":"\x1b"
-        }
 
-    async def telnet_commands(ip,cmds,skip=0):
+    async def telnet_commands(ip,cmds,skip=0,delay=0):
         reader, writer = await telnetlib3.open_connection(ip, 23)
 
         while skip:
@@ -58,6 +61,7 @@ try:
             writer.write(cmd)
             response = await reader.readuntil()
             print(response.decode("ascii"))
+            time.sleep(delay)
 
         return response.decode("ascii")
 
@@ -105,12 +109,10 @@ class WebInterface(object):
         self.config_file = args.json
         self.config_init = args.reset_skip
 
-        self.video_controlers = {}
-        self.video_controlers["crosspoint"] = self.cmd_crosspoint
-        self.video_controlers["rt4k"] = self.cmd_rt4k
-        self.video_controlers["in1606"] = self.cmd_in1606
-        self.video_controlers["dvs510"] = self.cmd_dvs510
-        self.video_controlers["dtp84"] = self.cmd_dtp84
+        self.video_controllers = {}
+        self.video_controllers["serial"] = self.cmd_serial
+        self.video_controllers["telnet"] = self.cmd_telnet
+        self.video_controllers["http_get"] = self.cmd_http_get
 
         self.load_config()
 
@@ -124,20 +126,17 @@ class WebInterface(object):
                 self.config=json.load(jsonfile)
         else:
             self.config={
-                "video":{
-                    "rt4k":None,
-                    "crosspoint":None,
-                    "in1606":None,
-                    "dvs510":None,
-                    "dtp84":None
+                "video_controllers":{
                 },
                 "sources":{}
             }
 
-        if not self.config_init and self.config["video"]["crosspoint"] is not None:
-            self.cmd_crosspoint("\x1bZXXX")
+        if not self.config_init:
+            for key, value in self.config["video_controllers"].items():
+                if "cmd_init" in value:
+                    self.video_controllers[value["type"]](value["cmd_init"],value)
 
-        self.config_init=True
+            self.config_init=True
 
 
 
@@ -164,42 +163,43 @@ class WebInterface(object):
             self.rip_thread.join()
 
 # Hardware commands
+    def cmd_serial(self,cmds,config):
+        line_end=config["line_end"] if "line_end" in config else ""
+        try:
+            serial_interface = serial.Serial(serialByName(config["serial"]),config["baud"],timeout=30,parity=config["parity"])
+            for cmd in cmds:
+                for key, value in json_codes.items():
+                    cmd = cmd.replace(key,value)
+                serial_interface.write( bytes(cmd+line_end,'ascii',errors='ignore') )
+        except Exception as e:
+            name=config["name"] if "name" in config else config["type"]
+            print(f"Error with device [{name}]:" + repr(e))
 
-    def cmd_crosspoint(self,cmds):
-        cross = serial.Serial(serialByName(self.config["video"]["crosspoint"]),9600,timeout=30,parity=serial.PARITY_NONE)
-        for cmd in cmds:
-            cross.write( bytes(cmd,'ascii',errors='ignore') )
 
-
-    def cmd_rt4k(self,cmds):
-        rt4k = serial.Serial(serialByName(self.config["video"]["rt4k"]),115200,timeout=30,parity=serial.PARITY_NONE)
-        for cmd in cmds:
-            rt4k.write( bytes(cmd+"\n",'ascii',errors='ignore') )
-
-
-    def cmd_dvs510(self,cmds):
+    def cmd_http_get(self,cmds,config):
+        cmd_delay=config["cmd_delay"] if "cmd_delay" in config else 0
         try:
             for cmd in cmds:
                 for key, value in json_codes.items():
                     cmd = cmd.replace(key,value)
-                endpoint=f'http://{self.config["video"]["dvs510"]}/?cmd={cmd}'
+                endpoint=f'http://{config["ip"]}{config["uri"]}{cmd}'
                 req =  request.Request(endpoint)
                 resp = request.urlopen(req)
+                time.sleep(cmd_delay)
         except Exception as e:
-            pprint(e)
+            name=config["name"] if "name" in config else config["type"]
+            print(f"Error with device [{name}]:" + repr(e))
 
 
-    def cmd_in1606(self,cmds):
+    def cmd_telnet(self,cmds,config):
         try:
-            asyncio.run(telnet_commands(self.config["video"]["in1606"],cmds,skip=3))
+            cmd_delay=config["cmd_delay"] if "cmd_delay" in config else 0
+            connection_skip=config["connection_skip"] if "connection_skip" in config else 0
+            asyncio.run(telnet_commands(config["ip"],cmds,skip=connection_skip,delay=cmd_delay))
         except Exception as e:
-            pprint(e)
+            name=config["name"] if "name" in config else config["type"]
+            print(f"Error with device [{name}]:" + repr(e))
 
-    def cmd_dtp84(self,cmds):
-        try:
-            asyncio.run(telnet_commands(self.config["video"]["dtp84"],cmds,skip=3))
-        except Exception as e:
-            pprint(e)
 
 # Endpoints
 
@@ -357,8 +357,8 @@ function system(event) {{
                     self.parse_sources(source[len(source.split("|")[0])+1:], value)
 
                 print(key+" not dict")
-                if key in self.video_controlers and self.config["video"][key] is not None:
-                    self.video_controlers[key](value)
+                if key in self.config["video_controllers"] and self.config["video_controllers"][key]["type"] in self.video_controllers:
+                    self.video_controllers[self.config["video_controllers"][key]["type"]](value,self.config["video_controllers"][key])
 
 
 # ------ Async Server Handler ------
