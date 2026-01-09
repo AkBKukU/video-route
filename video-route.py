@@ -102,6 +102,8 @@ class WebInterface(object):
         self.host = args.ip
         self.port = args.port
         self.toggle = not args.split
+        self.config_file = args.json
+        self.config_init = args.reset_skip
 
         self.video_controlers = {}
         self.video_controlers["crosspoint"] = self.cmd_crosspoint
@@ -110,9 +112,15 @@ class WebInterface(object):
         self.video_controlers["dvs510"] = self.cmd_dvs510
         self.video_controlers["dtp84"] = self.cmd_dtp84
 
-        if args.json is not None and os.path.exists(args.json):
+        self.load_config()
+
+    def load_config(self,config_file=None):
+        if config_file is not None:
+            self.config_file = config_file
+
+        if self.config_file is not None and os.path.exists(self.config_file):
             print("Reading from config")
-            with open(args.json, newline='') as jsonfile:
+            with open(self.config_file, newline='') as jsonfile:
                 self.config=json.load(jsonfile)
         else:
             self.config={
@@ -126,8 +134,10 @@ class WebInterface(object):
                 "sources":{}
             }
 
-        if not args.reset_skip and self.config["video"]["crosspoint"] is not None:
+        if not self.config_init and self.config["video"]["crosspoint"] is not None:
             self.cmd_crosspoint("\x1bZXXX")
+
+        self.config_init=True
 
 
 
@@ -194,6 +204,7 @@ class WebInterface(object):
 # Endpoints
 
     def index(self):
+        self.load_config()
         """ Simple class function to send HTML to browser """
         output=f'''
 <script>
