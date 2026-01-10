@@ -12,7 +12,6 @@ from pprint import pprint
 import asyncio
 import signal
 from multiprocessing import Process
-from urllib import request, parse
 
 # JSON doesn't support all escape sequences this is a substitute list to add them
 json_codes = {
@@ -21,53 +20,39 @@ json_codes = {
 }
 
 # External Modules
-try:
-    import serial
-    import serial.tools.list_ports
+def serialByName(name):
 
-    def serialByName(name):
-
-        # Lazy wrap both
-        if "/dev/" in name:
-            return name
-
-        for port in serial.tools.list_ports.comports():
-            if port[1] == name:
-                return port[0]
-
-        # They know better probably
+    # Lazy wrap both
+    if "/dev/" in name:
         return name
 
-except Exception as e:
-    print("Need to install Python module [pyserial]")
-    sys.exit(1)
+    for port in serial.tools.list_ports.comports():
+        if port[1] == name:
+            return port[0]
 
-# External Modules
-try:
-    import telnetlib3
+    # They know better probably
+    return name
 
 
-    async def telnet_commands(ip,cmds,skip=0,delay=0):
-        reader, writer = await telnetlib3.open_connection(ip, 23)
 
-        while skip:
-            inp = await reader.readuntil()
-            skip-=1
+async def telnet_commands(ip,cmds,skip=0,delay=0):
+    reader, writer = await telnetlib3.open_connection(ip, 23)
 
-        response = None
-        for cmd in cmds:
-            for key, value in json_codes.items():
-                cmd = cmd.replace(key,value)
-            writer.write(cmd)
-            response = await reader.readuntil()
-            print(response.decode("ascii"))
-            time.sleep(delay)
+    while skip:
+        inp = await reader.readuntil()
+        skip-=1
 
-        return response.decode("ascii")
+    response = None
+    for cmd in cmds:
+        for key, value in json_codes.items():
+            cmd = cmd.replace(key,value)
+        writer.write(cmd)
+        response = await reader.readuntil()
+        print(response.decode("ascii"))
+        time.sleep(delay)
 
-except Exception as e:
-    print("Need to install Python module [telnetlib3]")
-    sys.exit(1)
+    return response.decode("ascii")
+
 
 class WebInterface(object):
     try:
@@ -89,7 +74,7 @@ class WebInterface(object):
     def __init__(self,args):
 
         self.host_dir=os.path.realpath(__file__).replace(os.path.basename(__file__),"")
-        self.app = self.Flask("SRT Notes")
+        self.app = self.Flask("Video Route")
         #self.app.logger.disabled = True
         #log = logging.getLogger('werkzeug')
         #log.disabled = True
@@ -113,6 +98,15 @@ class WebInterface(object):
         self.video_controllers["serial"] = self.cmd_serial
         self.video_controllers["telnet"] = self.cmd_telnet
         self.video_controllers["http_get"] = self.cmd_http_get
+        self.video_controllers["atem"] = self.cmd_atem
+
+        self.controller_modules = {}
+        self.controller_modules["serial"] = False
+        self.controller_modules["telnet"] = False
+        self.controller_modules["http_get"] = False
+        self.controller_modules["atem"] = False
+
+        self.controller_atem = {}
 
         self.load_config()
 
@@ -138,6 +132,40 @@ class WebInterface(object):
 
             self.config_init=True
 
+
+        for key, value in self.config["video_controllers"].items():
+            if not self.controller_modules[value["type"]]:
+
+                match value["type"]:
+                    case "serial":
+                        try:
+                            global serial
+                            import serial
+                            import serial.tools.list_ports
+                            self.controller_modules["serial"] = True
+
+                        except Exception as e:
+                            print("Need to install Python module [pyserial]")
+                            sys.exit(1)
+                    case "telnet":
+                        try:
+                            global telnetlib3
+                            import telnetlib3
+                            self.controller_modules["telnet"] = True
+                        except Exception as e:
+                            print("Need to install Python module [telnetlib3]")
+                            sys.exit(1)
+                    case "http_get":
+
+                        global request
+                        global parse
+                        from urllib import request, parse
+                        self.controller_modules["http_get"] = True
+                    case "atem":
+
+                        global PyATEMMax
+                        import PyATEMMax
+                        self.controller_modules["atem"] = True
 
 
     async def start(self):
@@ -201,12 +229,40 @@ class WebInterface(object):
             print(f"Error with device [{name}]:" + repr(e))
 
 
+    def cmd_atem(self,cmds,config):
+        try:
+            switcher = PyATEMMax.ATEMMax()
+            print(f'Atem Connect: {config["ip"]}')
+            switcher.connect(config["ip"])
+            switcher.waitForConnection()
+            for cmd in cmds:
+                for function, p in cmd.items():
+                    print(f'Atem Function: {function}')
+                    match function:
+                        case "setProgramInputVideoSource":
+                            print(f'{function}({p[0]},{p[1]})')
+                            switcher.setProgramInputVideoSource(int(p[0]),int(p[1]))
+                        case "setKeyerFillSource":
+                            print(f'{function}({p[0]},{p[1]})')
+                            switcher.setKeyerFillSource(int(p[0]),int(p[1]),int(p[2]))
+            switcher.disconnect()
+
+
+        except Exception as e:
+            name=config["name"] if "name" in config else config["type"]
+            print(f"Error with device [{name}]:" + repr(e))
+
+
 # Endpoints
 
     def index(self):
         self.load_config()
         """ Simple class function to send HTML to browser """
         output=f'''
+        <head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	<meta name="HandheldFriendly" content="true" />
+	</head>
 <script>
 
 function system(event) {{
