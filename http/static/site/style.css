@@ -94,6 +94,15 @@ fieldset legend {
     vertical-align: top;
 }
 
+.list:hover,
+.buttons:hover {
+    box-shadow: 0em 0em 0em 0.2em #222;
+}
+.list:active,
+.buttons:active {
+    box-shadow: 0em 0em 0em 0.4em #222;
+}
+
 .list .text-block{
     display: inline-block;
     vertical-align: top;
