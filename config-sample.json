@@ -45,6 +45,8 @@
             "sources":{
                 "rt4k-power":{
                     "name":"Power",
+                    "color":"#FFF",
+                    "background":"#F00",
                     "rt4k":["remote pwr","pwr on"]
                     },
                 "rt4k-phase":{
@@ -76,6 +78,7 @@
         },
 	"dtp84_controls":{
 		"name":"Extron DTP 84",
+                "background":"#a11",
 		"sources":{
 			"dtp84-input1":{
 			    "name":"Input 1",
@@ -168,6 +171,15 @@
                     "crosspoint":["1*1!","1*2!","1*7!","11*3!"]
                     }
                 }
+            },
+        "n64":{
+            "name":"Nintendo 64",
+            "background":"#1a1",
+            "icon":"Nintendo 64.png",
+            "description":"",
+            "in1606":["1!#CR","1*4\\#CR","2*A#CR"],
+            "dtp84":["2*1!#CR","2*2!#CR","2*3!#CR"],
+            "crosspoint":["1*1!","1*2!","1*7!","11*3!"]
             }
     }
 }

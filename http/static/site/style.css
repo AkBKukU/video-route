@@ -1,7 +1,12 @@
+body{
+    background-color:#111;
+    padding: 0.5em;
+}
+
 h3 {
     margin: 0em;
 }
-ul, body {
+ul {
     padding: 0em;
     margin: 0em;
 }
@@ -31,17 +36,24 @@ fieldset > input[type=checkbox]:checked + legend + ul
 fieldset {
     display: block;
     position: relative;
-    margin: 1em;
     padding: 0em;
     background-color: #aaa;
     color: #111;
     padding: 0.5em;
-    border: none;
+    margin: 0em;
+    border: 1px solid #111;
     border-radius: 1em;
     text-align: left;
     vertical-align: top;
 }
-
+fieldset+fieldset
+{
+    margin-top:0.5em;
+}
+fieldset+li.list
+{
+    margin-top:1em;
+}
 fieldset legend {
     background-color: #ccc;
     color: #111;
@@ -53,7 +65,6 @@ fieldset legend {
 .buttons {
     display: inline-block;
     position: relative;
-    margin: 1em;
     background-color: #eee;
     color: #111;
     padding: 1em;
@@ -75,7 +86,6 @@ fieldset legend {
 .list {
     display: block;
     position: relative;
-    margin: 1em;
     background-color: #eee;
     color: #111;
     padding: 1em;

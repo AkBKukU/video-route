@@ -304,7 +304,7 @@ function system(event) {{
 
 </script>
 <link rel="stylesheet" type="text/css" href="/static/site/style.css" ></style>
-<body style="background-color:#111;">
+<body>
 <ul onclick="system(event)" >
 '''
         output+=self.build_sources(self.config["sources"])
@@ -320,10 +320,16 @@ function system(event) {{
         output=""
         for key, value in source.items():
 
+            colors=""
+            if "color" in value:
+                colors+=f'color:{value["color"]};'
+            if "background" in value :
+                colors+=f'background-color:{value["background"]};'
+
             if isinstance(value, dict):
                 if "sources" in value:
                     output+=f'''
-    <fieldset>
+    <fieldset style="{colors}">
     '''
                     checked=""
                     if "hide" in value:
@@ -333,6 +339,8 @@ function system(event) {{
                         output+=f'''
         <input type=checkbox id="{prefix+key}" {checked}/>
         <legend><label for="{prefix+key}">{value["name"]}</label></legend>
+    '''
+                    output+=f'''
         <ul>
     '''
                     # Image Setup
@@ -359,11 +367,11 @@ function system(event) {{
 
             if "description" in value:
                 output+=f'''
-    <li source="{prefix+key}" class="list">
+    <li source="{prefix+key}" style="{colors}" class="list">
     '''
             else:
                 output+=f'''
-    <li source="{prefix+key}" class="buttons">
+    <li source="{prefix+key}" style="{colors}" class="buttons">
     '''
             # Image Setup
             if "icon" in value:
