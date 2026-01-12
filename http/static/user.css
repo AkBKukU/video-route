@@ -1,0 +1,39 @@
+/* Custom user CSS goes here. */
+
+/* Dark mode example */
+/*
+body{
+    background-color:#000;
+}
+fieldset legend {
+    background-color: #222;
+    color: #ddd;
+}
+
+fieldset > input[type=checkbox]:checked + legend
+{
+    background-color: #a00;
+    color: #ddd;
+}
+
+fieldset {
+    color: #ddd;
+    border: 1px solid #111;
+    background-color: #333;
+}
+
+.buttons,
+.list {
+    background-color: #555;
+    color: #ddd;
+}
+
+.list:hover,
+.buttons:hover {
+    box-shadow: 0em 0em 0em 0.2em #888;
+}
+.list:active,
+.buttons:active {
+    box-shadow: 0em 0em 0em 0.4em #888;
+}
+*/

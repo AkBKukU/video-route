@@ -422,6 +422,7 @@ function system(event) {{
 
 </script>
 <link rel="stylesheet" type="text/css" href="/static/site/style.css" ></style>
+<link rel="stylesheet" type="text/css" href="/static/user.css" ></style>
 </head>
 <body>
 <ul onclick="system(event)" >
@@ -431,6 +432,7 @@ function system(event) {{
         output+=f'''
 </ul>
 </body>
+<script type="text/javascript" src="/static/user.js"></script>
 </html>
 '''
         return output
