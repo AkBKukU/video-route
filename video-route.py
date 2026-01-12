@@ -13,7 +13,7 @@ import asyncio
 import signal
 from multiprocessing import Process
 
-# JSON doesn't support all escape sequences this is a substitute list to add them
+# JSON doesn't support all escape sequences this is a substitute list to add some
 json_codes = {
     "#CR":"\r",
     "#ESC":"\x1b"
@@ -28,6 +28,8 @@ def serialByName(name):
 
     for port in serial.tools.list_ports.comports():
         if port[1] == name:
+            return port[0]
+        if port[2] == name:
             return port[0]
 
     # They know better probably
@@ -90,8 +92,7 @@ class WebInterface(object):
 
         self.host = args.ip
         self.port = args.port
-        self.toggle = not args.split
-        self.config_file = args.json
+        self.config_file = args.config
         self.config_init = args.reset_skip
 
         self.video_controllers = {}
@@ -99,14 +100,11 @@ class WebInterface(object):
         self.video_controllers["telnet"] = self.cmd_telnet
         self.video_controllers["http_get"] = self.cmd_http_get
         self.video_controllers["atem"] = self.cmd_atem
+        self.video_controllers["obs"] = self.cmd_obs
 
         self.controller_modules = {}
-        self.controller_modules["serial"] = False
-        self.controller_modules["telnet"] = False
-        self.controller_modules["http_get"] = False
-        self.controller_modules["atem"] = False
-
-        self.controller_atem = {}
+        for video_controller, function in self.video_controllers.items():
+            self.controller_modules[video_controller] = False
 
         self.load_config()
 
@@ -163,9 +161,22 @@ class WebInterface(object):
                         self.controller_modules["http_get"] = True
                     case "atem":
 
-                        global PyATEMMax
-                        import PyATEMMax
-                        self.controller_modules["atem"] = True
+                        try:
+                            global PyATEMMax
+                            import PyATEMMax
+                            self.controller_modules["atem"] = True
+                        except Exception as e:
+                            print("Need to install Python module [PyATEMMax]")
+                            sys.exit(1)
+                    case "obs":
+
+                        try:
+                            global obs
+                            import obsws_python as obs
+                            self.controller_modules["obs"] = True
+                        except Exception as e:
+                            print("Need to install Python module [obsws-python]")
+                            sys.exit(1)
 
 
     async def start(self):
@@ -237,21 +248,29 @@ class WebInterface(object):
             switcher.waitForConnection()
             for cmd in cmds:
                 for function, p in cmd.items():
-                    print(f'Atem Function: {function}')
-                    match function:
-                        case "setProgramInputVideoSource":
-                            print(f'{function}({p[0]},{p[1]})')
-                            switcher.setProgramInputVideoSource(int(p[0]),int(p[1]))
-                        case "setKeyerFillSource":
-                            print(f'{function}({p[0]},{p[1]})')
-                            switcher.setKeyerFillSource(int(p[0]),int(p[1]),int(p[2]))
+                    if hasattr(switcher,function):
+                        getattr(switcher,function)(*p)
+                    else:
+                        print(f"Error with device [{name}]: OBS has no function [{function}]")
             switcher.disconnect()
-
-
         except Exception as e:
             name=config["name"] if "name" in config else config["type"]
             print(f"Error with device [{name}]:" + repr(e))
 
+
+    def cmd_obs(self,cmds,config):
+        try:
+            client = obs.ReqClient(host=config["ip"], port=config["port"], password=config["password"], timeout=config["timeout"])
+            for cmd in cmds:
+                for function, p in cmd.items():
+                    if hasattr(client,function):
+                        getattr(client,function)(*p)
+                    else:
+                        print(f"Error with device [{name}]: OBS has no function [{function}]")
+
+        except Exception as e:
+            name=config["name"] if "name" in config else config["type"]
+            print(f"Error with device [{name}]:" + repr(e))
 
 # Endpoints
 
@@ -296,16 +315,6 @@ function system(event) {{
 '''
         return output
 
-
-    def web_system(self):
-        data = self.request.get_json()
-        pprint(data)
-        if "source" in data:
-            self.parse_sources(data['source'], self.config["sources"])
-
-
-
-        return "sure"
 
     def build_sources(self,source,prefix=""):
         output=""
@@ -403,22 +412,29 @@ function system(event) {{
 
         return output
 
+
+    def web_system(self):
+        data = self.request.get_json()
+        pprint(data)
+        if "source" in data:
+            self.parse_sources(data['source'], self.config["sources"])
+
+        return "sure"
+
+
     def parse_sources(self, source, config):
 
         if source.split("|")[0] in config:
             for key, value in config[source.split("|")[0]].items():
 
                 if isinstance(value, dict):
-                    print(key+" is dict")
                     self.parse_sources(source[len(source.split("|")[0])+1:], value)
 
-                print(key+" not dict")
                 if key in self.config["video_controllers"] and self.config["video_controllers"][key]["type"] in self.video_controllers:
                     self.video_controllers[self.config["video_controllers"][key]["type"]](value,self.config["video_controllers"][key])
 
 
 # ------ Async Server Handler ------
-
 global loop_state
 global server
 loop_state = True
@@ -441,10 +457,6 @@ def exit_handler(sig, frame):
     server.stop()
 
 
-# ------ Async Server Handler ------
-
-
-
 async def startWeb(args):
 
     # Internal Modules
@@ -462,7 +474,7 @@ async def startWeb(args):
         server.start(),
         asyncLoop()
     )
-
+# ------ Async Server Handler ------
 
 
 def main():
@@ -472,22 +484,29 @@ def main():
     # Setup CLI arguments
     parser = argparse.ArgumentParser(
                     prog="video-route",
-                    description='Web page remote for serial control of RT4K',
+                    description='Web page remote for control video processors',
                     epilog='')
     parser.add_argument('-i', '--ip', help="Web server listening IP", default="0.0.0.0")
-    parser.add_argument('-p', '--port', help="Web server listening IP", default="5003")
-    parser.add_argument('-j', '--json', help="JSON config file", default=None)
+    parser.add_argument('-p', '--port', help="Web server listening IP", default="5000")
+    parser.add_argument('-c', '--config', help="JSON config file", default=None)
     parser.add_argument('-r', '--reset-skip', help="Do not re-initialize hardware", action='store_true')
     parser.add_argument('-S', '--serial-names', help="List serial port names", action='store_true')
-    parser.add_argument('-l', '--split', help="Split power button instead of toggle", action='store_true')
     parser.add_argument('other', help="", default=None, nargs=argparse.REMAINDER)
     args = parser.parse_args()
 
+
     if args.serial_names:
-        for port in serial.tools.list_ports.comports():
-            if port[1] != "n/a":
-                print( port[0]+":"+port[1] )
-        sys.exit(0)
+        try:
+            import serial
+            import serial.tools.list_ports
+            for port in serial.tools.list_ports.comports():
+                if port[1] != "n/a":
+                    print( f'[{port[0]}] by Name: [{port[1]}]' )
+                    print( f'[{port[0]}] by ID and Path: [{port[2]}]' )
+            sys.exit(0)
+        except Exception as e:
+            print("Need to install Python module [pyserial]")
+            sys.exit(1)
 
 
     # Run web server
