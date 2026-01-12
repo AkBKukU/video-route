@@ -1,6 +1,6 @@
 # Supported Video Controllers
 
-The video route program has features generic support for some devices and specific support for others. How you control your device will depend on how you can interface with it. Devices are defined in the `video_controllers` section of the configuration JSON. Their key is used an identifier in any sources that send commands through them.
+The video route program features generic support for some devices and specific support for others. How you control your device will depend on how you can interface with it. Devices are defined in the `video_controllers` section of the configuration JSON. Their key is used an identifier in any sources that send commands through them.
 
 ## Example
 All interfaces have properties that need to be filled in to use.
