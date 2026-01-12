@@ -1,0 +1,34 @@
+{
+"video_controllers":{
+    "rt4k":{
+        "name":"Retrotink 4K",
+        "type":"serial",
+        "baud":115200,
+        "parity":"N",
+        "serial":"FT232R USB UART - FT232R USB UART",
+        "cmd_delay":0,
+        "line_end":"\n"
+    }
+},
+"sources":{
+    "rt4k":{
+        "name":"RT4K Controls",
+        "sources":{
+            "rt4k-power":{
+                "name":"Power",
+                "color":"#FFF",
+                "background":"#c00",
+                "rt4k":["remote pwr","pwr on"]
+                },
+            "rt4k-phase":{
+                "name":"Phase",
+                "rt4k":["remote phase"]
+                },
+            "rt4k-gain":{
+                "name":"Gain",
+                "rt4k":["remote gain"]
+                }
+            }
+        }
+    }
+}

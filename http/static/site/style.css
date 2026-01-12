@@ -47,13 +47,12 @@ fieldset {
     text-align: left;
     vertical-align: top;
 }
-fieldset+fieldset
+fieldset+li.list,
+fieldset+li.buttons,
+fieldset+fieldset,
+li+li.buttons
 {
     margin-top:0.5em;
-}
-fieldset+li.list
-{
-    margin-top:1em;
 }
 fieldset legend {
     background-color: #ccc;

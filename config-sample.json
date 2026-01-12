@@ -1,6 +1,5 @@
 {
     "video_controllers":{
-
         "rt4k":{
             "name":"Retrotink 4K",
             "type":"serial",
@@ -46,7 +45,7 @@
                 "rt4k-power":{
                     "name":"Power",
                     "color":"#FFF",
-                    "background":"#F00",
+                    "background":"#c00",
                     "rt4k":["remote pwr","pwr on"]
                     },
                 "rt4k-phase":{
@@ -78,27 +77,34 @@
         },
 	"dtp84_controls":{
 		"name":"Extron DTP 84",
-                "background":"#a11",
 		"sources":{
-			"dtp84-input1":{
-			    "name":"Input 1",
-			    "dtp84":["1*1!#CR","1*2!#CR","1*3!#CR","1*4!#CR"]
-			    },
-			"dtp84-input2":{
-			    "name":"Input 2",
-			    "dtp84":["2*1!#CR","2*2!#CR","2*3!#CR","2*4!#CR"]
-			    },
-			"dtp84-input3":{
-			    "name":"Input 3",
-			    "dtp84":["3*1!#CR","3*2!#CR","3*3!#CR","3*4!#CR"]
-			    },
-			"dtp84-input4":{
-			    "name":"Input 4",
-			    "dtp84":["4*1!#CR","4*2!#CR","4*3!#CR","4*4!#CR"]
-			    },
-			"dtp84-input6":{
-			    "name":"Input 6",
-			    "dtp84":["6*1!#CR","6*2!#CR","6*3!#CR","6*4!#CR"]
+            "dtp-inputs":{
+                "sources":{
+                    "dtp84-input1":{
+                        "name":"Input 1",
+                        "dtp84":["1*1!#CR","1*2!#CR","1*3!#CR","1*4!#CR"]
+                        },
+                    "dtp84-input2":{
+                        "name":"Input 2",
+                        "dtp84":["2*1!#CR","2*2!#CR","2*3!#CR","2*4!#CR"]
+                        },
+                    "dtp84-input3":{
+                        "name":"Input 3",
+                        "dtp84":["3*1!#CR","3*2!#CR","3*3!#CR","3*4!#CR"]
+                        },
+                    "dtp84-input4":{
+                        "name":"Input 4",
+                        "dtp84":["4*1!#CR","4*2!#CR","4*3!#CR","4*4!#CR"]
+                        },
+                    "dtp84-input5":{
+                        "name":"Input 5",
+                        "dtp84":["5*1!#CR","5*2!#CR","5*3!#CR","5*4!#CR"]
+                        },
+                    "dtp84-input6":{
+                        "name":"Input 6",
+                        "dtp84":["6*1!#CR","6*2!#CR","6*3!#CR","6*4!#CR"]
+                        }
+                    }
 			    },
 			"dtp84-teston":{
 			    "name":"Test Pattern Enable",
@@ -116,6 +122,8 @@
 			    "name":"1080p EDID",
 			    "dtp84":["#ESC03*84RATE#CR"]
 			    },
+            "dtp-scale":{
+                "sources":{
 			"dtp84-full":{
 			    "name":"Scale Full",
 			    "dtp84":["#ESC3,0*0*1920*1080XIMG#CR"]
@@ -123,18 +131,8 @@
 			"dtp84-43":{
 			    "name":"Scale 4:3",
 			    "dtp84":["#ESC3,300*0*1320*1080XIMG#CR"]
-			    },
-			"dtp84-condown":{
-			    "name":"Contrast Down",
-			    "dtp84":["#ESC3*10CONT#CR"]
-			    },
-			"dtp84-conup":{
-			    "name":"Contrast Up",
-			    "dtp84":["#ESC3*64CONT#CR"]
-			    },
-			"dtp84-outformat":{
-			    "name":"Output Format",
-			    "dtp84":["#ESC3*4VTPO#CR"]
+			    }
+			    }
 			    }
 		}
 	},
@@ -153,8 +151,8 @@
             }
         },
         "snes":{
-            "name":"Super Nintendo",
             "icon":"Super Nintendo Entertainment System.png",
+            "background":"#a9c",
             "sources":{
                 "snes512":{
                     "rt4k":["remote prof1"],
@@ -173,10 +171,15 @@
                 }
             },
         "n64":{
-            "name":"Nintendo 64",
-            "background":"#1a1",
+            "background":"#aca",
             "icon":"Nintendo 64.png",
-            "description":"",
+            "in1606":["1!#CR","1*4\\#CR","2*A#CR"],
+            "dtp84":["2*1!#CR","2*2!#CR","2*3!#CR"],
+            "crosspoint":["1*1!","1*2!","1*7!","11*3!"]
+            },
+        "dc":{
+            "background":"#cba",
+            "icon":"Sega Dreamcast.png",
             "in1606":["1!#CR","1*4\\#CR","2*A#CR"],
             "dtp84":["2*1!#CR","2*2!#CR","2*3!#CR"],
             "crosspoint":["1*1!","1*2!","1*7!","11*3!"]

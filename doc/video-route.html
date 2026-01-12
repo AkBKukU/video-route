@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module video-route</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title">video-route</strong></td>
+<td class="extra"><a href=".">index</a><br><a href="file:/home/akbkuku/git/video-route/video-route.py">/home/akbkuku/git/video-route/video-route.py</a></td></tr></table>
+    <p><span class="code">This&nbsp;is&nbsp;a&nbsp;program&nbsp;for&nbsp;controlling&nbsp;video&nbsp;devices&nbsp;remotely&nbsp;from&nbsp;a&nbsp;web&nbsp;interface.&nbsp;A&nbsp;JSON&nbsp;file&nbsp;is&nbsp;used&nbsp;to&nbsp;define&nbsp;device&nbsp;connections&nbsp;and&nbsp;command&nbsp;sequences&nbsp;to&nbsp;perform&nbsp;complex&nbsp;actions.&nbsp;It&nbsp;is&nbsp;stateless&nbsp;meaning&nbsp;it&nbsp;cannot&nbsp;represent&nbsp;data&nbsp;from&nbsp;the&nbsp;devices&nbsp;(ex,&nbsp;a&nbsp;volume&nbsp;slider&nbsp;is&nbsp;not&nbsp;possible),&nbsp;but&nbsp;this&nbsp;is&nbsp;intentional&nbsp;to&nbsp;make&nbsp;it&nbsp;easier&nbsp;to&nbsp;use&nbsp;from&nbsp;multiple&nbsp;client&nbsp;devices&nbsp;simultaneously.<br>
+&nbsp;<br>
+Basic&nbsp;usage&nbsp;is&nbsp;to&nbsp;just&nbsp;launch&nbsp;it&nbsp;with&nbsp;a&nbsp;configuration&nbsp;file:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;video-route&nbsp;-c&nbsp;config-sample.json</span></p>
+<p>
+<table class="section">
+<tr class="decor pkg-content-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Modules</strong></td></tr>
+    
+<tr><td class="decor pkg-content-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><table><tr><td class="multicolumn"><a href="argparse.html">argparse</a><br>
+<a href="asyncio.html">asyncio</a><br>
+<a href="datetime.html">datetime</a><br>
+</td><td class="multicolumn"><a href="json.html">json</a><br>
+<a href="os.html">os</a><br>
+<a href="re.html">re</a><br>
+</td><td class="multicolumn"><a href="signal.html">signal</a><br>
+<a href="sys.html">sys</a><br>
+<a href="time.html">time</a><br>
+</td><td class="multicolumn"></td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor index-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Classes</strong></td></tr>
+    
+<tr><td class="decor index-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl>
+<dt class="heading-text"><a href="builtins.html#object">builtins.object</a>
+</dt><dd>
+<dl>
+<dt class="heading-text"><a href="video-route.html#WebInterface">WebInterface</a>
+</dt></dl>
+</dd>
+</dl>
+ <p>
+<table class="section">
+<tr class="decor title-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><a name="WebInterface">class <strong>WebInterface</strong></a>(<a href="builtins.html#object">builtins.object</a>)</td></tr>
+    
+<tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
+<td class="decor title-decor" colspan=2><span class="code"><a href="#WebInterface">WebInterface</a>(args)<br>
+&nbsp;<br>
+Web&nbsp;frontend&nbsp;to&nbsp;hardware&nbsp;access.&nbsp;Generates&nbsp;web&nbsp;page&nbsp;based&nbsp;on&nbsp;user&nbsp;JSON&nbsp;and&nbsp;responds&nbsp;to&nbsp;actions&nbsp;by&nbsp;passing&nbsp;commands&nbsp;to&nbsp;hardware.<br>&nbsp;</span></td></tr>
+<tr><td>&nbsp;</td>
+<td class="singlecolumn">Methods defined here:<br>
+<dl><dt><a name="WebInterface-__init__"><strong>__init__</strong></a>(self, args)</dt><dd><span class="code">Construct&nbsp;a&nbsp;new&nbsp;'Foo'&nbsp;<a href="builtins.html#object">object</a>.<br>
+&nbsp;<br>
+:param&nbsp;args:&nbsp;argument&nbsp;values&nbsp;from&nbsp;program&nbsp;start<br>
+:return:&nbsp;returns&nbsp;nothing</span></dd></dl>
+
+<dl><dt><a name="WebInterface-build_sources"><strong>build_sources</strong></a>(self, source, prefix='')</dt><dd><span class="code">Builds&nbsp;user&nbsp;front&nbsp;end&nbsp;based&nbsp;on&nbsp;JSON&nbsp;config&nbsp;file.&nbsp;Reloads&nbsp;config&nbsp;every&nbsp;time&nbsp;to&nbsp;allow&nbsp;realtime&nbsp;adjustment&nbsp;of&nbsp;JSON&nbsp;during&nbsp;initial&nbsp;setup.<br>
+&nbsp;<br>
+Nested&nbsp;sources&nbsp;are&nbsp;generated&nbsp;as&nbsp;fieldsets&nbsp;and&nbsp;call&nbsp;this&nbsp;function&nbsp;recursively.&nbsp;This&nbsp;is&nbsp;the&nbsp;primary&nbsp;way&nbsp;of&nbsp;grouping&nbsp;related&nbsp;commands.<br>
+&nbsp;<br>
+Commands&nbsp;are&nbsp;not&nbsp;stored&nbsp;in&nbsp;JSON&nbsp;data,&nbsp;nested&nbsp;key&nbsp;paths&nbsp;are&nbsp;stored&nbsp;as&nbsp;a&nbsp;custom&nbsp;attribute&nbsp;which&nbsp;is&nbsp;used&nbsp;to&nbsp;walk&nbsp;the&nbsp;dictionary&nbsp;path&nbsp;in&nbsp;the&nbsp;function&nbsp;that&nbsp;parses&nbsp;the&nbsp;web&nbsp;client&nbsp;responses.<br>
+&nbsp;<br>
+:param&nbsp;source:&nbsp;Source&nbsp;data&nbsp;from&nbsp;JSON&nbsp;config<br>
+:param&nbsp;prefix:&nbsp;Identifier&nbsp;prefix&nbsp;to&nbsp;use&nbsp;for&nbsp;un-nesting&nbsp;sources<br>
+:return:&nbsp;returns&nbsp;generated&nbsp;HTML&nbsp;as&nbsp;string</span></dd></dl>
+
+<dl><dt><a name="WebInterface-cmd_atem"><strong>cmd_atem</strong></a>(self, cmds, config)</dt><dd><span class="code">Send&nbsp;commands&nbsp;to&nbsp;ATEM&nbsp;controller&nbsp;over&nbsp;network.<br>
+&nbsp;<br>
+:param&nbsp;cmds:&nbsp;Commands&nbsp;as&nbsp;list&nbsp;of&nbsp;of&nbsp;dicts&nbsp;with&nbsp;function&nbsp;name&nbsp;as&nbsp;key&nbsp;and&nbsp;parameters&nbsp;as&nbsp;value<br>
+:param&nbsp;config:&nbsp;Device&nbsp;controller&nbsp;configuration<br>
+:return:&nbsp;returns&nbsp;nothing</span></dd></dl>
+
+<dl><dt><a name="WebInterface-cmd_http_get"><strong>cmd_http_get</strong></a>(self, cmds, config)</dt><dd><span class="code">Send&nbsp;commands&nbsp;to&nbsp;HTTP&nbsp;endpoint&nbsp;as&nbsp;GET&nbsp;URL&nbsp;parameter.<br>
+&nbsp;<br>
+:param&nbsp;cmds:&nbsp;Commands&nbsp;as&nbsp;list&nbsp;of&nbsp;strings&nbsp;to&nbsp;send<br>
+:param&nbsp;config:&nbsp;Device&nbsp;controller&nbsp;configuration<br>
+:return:&nbsp;returns&nbsp;nothing</span></dd></dl>
+
+<dl><dt><a name="WebInterface-cmd_obs"><strong>cmd_obs</strong></a>(self, cmds, config)</dt><dd><span class="code">Send&nbsp;commands&nbsp;to&nbsp;OBS&nbsp;using&nbsp;web&nbsp;sockets.<br>
+&nbsp;<br>
+:param&nbsp;cmds:&nbsp;Commands&nbsp;as&nbsp;list&nbsp;of&nbsp;of&nbsp;dicts&nbsp;with&nbsp;function&nbsp;name&nbsp;as&nbsp;key&nbsp;and&nbsp;parameters&nbsp;as&nbsp;value<br>
+:param&nbsp;config:&nbsp;Device&nbsp;controller&nbsp;configuration<br>
+:return:&nbsp;returns&nbsp;nothing</span></dd></dl>
+
+<dl><dt><a name="WebInterface-cmd_serial"><strong>cmd_serial</strong></a>(self, cmds, config)</dt><dd><span class="code">Send&nbsp;commands&nbsp;to&nbsp;serial&nbsp;device.<br>
+&nbsp;<br>
+:param&nbsp;cmds:&nbsp;Commands&nbsp;as&nbsp;list&nbsp;of&nbsp;strings&nbsp;to&nbsp;send<br>
+:param&nbsp;config:&nbsp;Device&nbsp;controller&nbsp;configuration<br>
+:return:&nbsp;returns&nbsp;nothing</span></dd></dl>
+
+<dl><dt><a name="WebInterface-cmd_telnet"><strong>cmd_telnet</strong></a>(self, cmds, config)</dt><dd><span class="code">Send&nbsp;commands&nbsp;to&nbsp;telnet&nbsp;server.<br>
+&nbsp;<br>
+:param&nbsp;cmds:&nbsp;Commands&nbsp;as&nbsp;list&nbsp;of&nbsp;strings&nbsp;to&nbsp;send<br>
+:param&nbsp;config:&nbsp;Device&nbsp;controller&nbsp;configuration<br>
+:return:&nbsp;returns&nbsp;nothing</span></dd></dl>
+
+<dl><dt><a name="WebInterface-index"><strong>index</strong></a>(self)</dt><dd><span class="code">Base&nbsp;HTML&nbsp;for&nbsp;web&nbsp;front&nbsp;end.&nbsp;Defines&nbsp;paths&nbsp;to&nbsp;common&nbsp;resources&nbsp;and&nbsp;calls&nbsp;to&nbsp;build&nbsp;main&nbsp;source&nbsp;list.<br>
+&nbsp;<br>
+:return:&nbsp;returns&nbsp;generated&nbsp;HTML&nbsp;as&nbsp;string</span></dd></dl>
+
+<dl><dt><a name="WebInterface-load_config"><strong>load_config</strong></a>(self, config_file=None)</dt><dd><span class="code">Load&nbsp;config&nbsp;file&nbsp;used&nbsp;to&nbsp;set&nbsp;connections&nbsp;to&nbsp;devices&nbsp;and&nbsp;define&nbsp;web&nbsp;interface.<br>
+&nbsp;<br>
+When&nbsp;a&nbsp;new&nbsp;device&nbsp;type&nbsp;is&nbsp;loaded,&nbsp;if&nbsp;it&nbsp;has&nbsp;any&nbsp;module&nbsp;dependencies&nbsp;these&nbsp;are&nbsp;imported&nbsp;for&nbsp;the&nbsp;first&nbsp;time&nbsp;here&nbsp;as&nbsp;globals.&nbsp;This&nbsp;prevents&nbsp;users&nbsp;who&nbsp;don't&nbsp;have&nbsp;some&nbsp;less&nbsp;common&nbsp;devices,&nbsp;such&nbsp;as&nbsp;the&nbsp;Blackmagic&nbsp;Atem,&nbsp;from&nbsp;needed&nbsp;to&nbsp;install&nbsp;the&nbsp;dependencies&nbsp;for&nbsp;those&nbsp;if&nbsp;they&nbsp;won't&nbsp;be&nbsp;using&nbsp;them.<br>
+&nbsp;<br>
+:param&nbsp;config_file:&nbsp;The&nbsp;path&nbsp;to&nbsp;the&nbsp;JSON&nbsp;configuration&nbsp;file.<br>
+:return:&nbsp;returns&nbsp;nothing</span></dd></dl>
+
+<dl><dt><a name="WebInterface-parse_sources"><strong>parse_sources</strong></a>(self, source, config)</dt><dd><span class="code">Parses&nbsp;delimited&nbsp;source&nbsp;command&nbsp;identifier&nbsp;to&nbsp;run&nbsp;associated&nbsp;commands.&nbsp;Recursively&nbsp;calls&nbsp;self&nbsp;for&nbsp;nested&nbsp;sources.<br>
+&nbsp;<br>
+:param&nbsp;source:&nbsp;Source&nbsp;identifier&nbsp;string&nbsp;from&nbsp;web&nbsp;frontend<br>
+:param&nbsp;config:&nbsp;Source&nbsp;list&nbsp;from&nbsp;config<br>
+:return:&nbsp;returns&nbsp;nothing</span></dd></dl>
+
+<dl><dt>async <a name="WebInterface-start"><strong>start</strong></a>(self)</dt><dd><span class="code">Start&nbsp;web&nbsp;server&nbsp;in&nbsp;Process&nbsp;thread<br>
+&nbsp;<br>
+:return:&nbsp;returns&nbsp;nothing</span></dd></dl>
+
+<dl><dt><a name="WebInterface-stop"><strong>stop</strong></a>(self)</dt><dd><span class="code">Stop&nbsp;web&nbsp;server&nbsp;in&nbsp;Process&nbsp;thread<br>
+&nbsp;<br>
+:return:&nbsp;returns&nbsp;nothing</span></dd></dl>
+
+<dl><dt><a name="WebInterface-web_system"><strong>web_system</strong></a>(self)</dt><dd><span class="code">Endpoint&nbsp;handler&nbsp;for&nbsp;commands&nbsp;from&nbsp;web&nbsp;interface<br>
+&nbsp;<br>
+:return:&nbsp;returns&nbsp;generic&nbsp;response&nbsp;for&nbsp;HTTP</span></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><span class="code">dictionary&nbsp;for&nbsp;instance&nbsp;variables</span></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><span class="code">list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object</span></dd>
+</dl>
+</td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor functions-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Functions</strong></td></tr>
+    
+<tr><td class="decor functions-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl><dt>async <a name="-asyncLoop"><strong>asyncLoop</strong></a>()</dt><dd><span class="code">Blocking&nbsp;main&nbsp;loop&nbsp;to&nbsp;provide&nbsp;time&nbsp;for&nbsp;async&nbsp;tasks&nbsp;to&nbsp;run<br>
+&nbsp;<br>
+:return:&nbsp;returns&nbsp;nothing</span></dd></dl>
+ <dl><dt><a name="-exit_handler"><strong>exit_handler</strong></a>(sig, frame)</dt><dd><span class="code">Handle&nbsp;CTRL-C&nbsp;to&nbsp;gracefully&nbsp;end&nbsp;program&nbsp;and&nbsp;API&nbsp;connections<br>
+&nbsp;<br>
+:return:&nbsp;returns&nbsp;nothing</span></dd></dl>
+ <dl><dt><a name="-main"><strong>main</strong></a>()</dt><dd><span class="code">Execute&nbsp;CLI&nbsp;start&nbsp;and&nbsp;process&nbsp;parameters<br>
+&nbsp;<br>
+:return:&nbsp;returns&nbsp;exit&nbsp;code</span></dd></dl>
+ <dl><dt><a name="-serialByName"><strong>serialByName</strong></a>(name)</dt><dd><span class="code">This&nbsp;is&nbsp;a&nbsp;wrapper&nbsp;to&nbsp;allow&nbsp;the&nbsp;user&nbsp;to&nbsp;specify&nbsp;serial&nbsp;devices&nbsp;by&nbsp;their&nbsp;USB&nbsp;name&nbsp;or&nbsp;ID&nbsp;and&nbsp;path.<br>
+&nbsp;<br>
+You&nbsp;can&nbsp;see&nbsp;all&nbsp;serial&nbsp;device&nbsp;information&nbsp;for&nbsp;connected&nbsp;devices&nbsp;by&nbsp;running:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;video-route&nbsp;-S<br>
+&nbsp;<br>
+:param&nbsp;name:&nbsp;The&nbsp;name&nbsp;or&nbsp;ID&nbsp;and&nbsp;path&nbsp;of&nbsp;the&nbsp;serial&nbsp;device<br>
+:return:&nbsp;returns&nbsp;path&nbsp;to&nbsp;serial&nbsp;device&nbsp;or&nbsp;value&nbsp;of&nbsp;name&nbsp;if&nbsp;no&nbsp;match&nbsp;found</span></dd></dl>
+ <dl><dt>async <a name="-startWeb"><strong>startWeb</strong></a>(args)</dt><dd><span class="code">Asynchronously&nbsp;start&nbsp;web&nbsp;interface<br>
+&nbsp;<br>
+:return:&nbsp;returns&nbsp;nothing</span></dd></dl>
+ <dl><dt>async <a name="-telnet_commands"><strong>telnet_commands</strong></a>(ip, cmds, skip=0, delay=0, port=23)</dt><dd><span class="code">Generic&nbsp;telnet&nbsp;wrapper&nbsp;for&nbsp;use&nbsp;with&nbsp;multiple&nbsp;devices.&nbsp;This&nbsp;exists&nbsp;to&nbsp;wrap&nbsp;the&nbsp;async&nbsp;requirement&nbsp;but&nbsp;also&nbsp;so&nbsp;that&nbsp;a&nbsp;single&nbsp;connection&nbsp;can&nbsp;be&nbsp;established&nbsp;for&nbsp;all&nbsp;needed&nbsp;commands.<br>
+&nbsp;<br>
+&nbsp;<br>
+:param&nbsp;ip:&nbsp;IP&nbsp;for&nbsp;telnet&nbsp;server<br>
+:param&nbsp;cmds:&nbsp;List&nbsp;of&nbsp;strings&nbsp;for&nbsp;all&nbsp;commands&nbsp;to&nbsp;execute<br>
+:param&nbsp;skip:&nbsp;Number&nbsp;of&nbsp;lines&nbsp;to&nbsp;read&nbsp;and&nbsp;discard&nbsp;when&nbsp;connecting&nbsp;to&nbsp;server&nbsp;before&nbsp;issuing&nbsp;commands<br>
+:param&nbsp;delay:&nbsp;Time&nbsp;in&nbsp;seconds&nbsp;to&nbsp;wait&nbsp;before&nbsp;sending&nbsp;next&nbsp;command<br>
+:param&nbsp;port:&nbsp;Port&nbsp;for&nbsp;telnet&nbsp;server<br>
+:return:&nbsp;returns&nbsp;response&nbsp;from&nbsp;last&nbsp;command</span></dd></dl>
+</td></tr></table><p>
+<table class="section">
+<tr class="decor data-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Data</strong></td></tr>
+    
+<tr><td class="decor data-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><strong>json_codes</strong> = {'#CR': '<span class="repr">\r</span>', '#ESC': '<span class="repr">\x1b</span>'}<br>
+<strong>loop_state</strong> = True<br>
+<strong>server</strong> = None</td></tr></table>
+</body></html>
