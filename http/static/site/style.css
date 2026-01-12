@@ -4,6 +4,7 @@ body{
 }
 
 h3 {
+    font-family: sans-serif;
     margin: 0em;
 }
 ul {
@@ -81,10 +82,16 @@ fieldset legend {
     max-height: 100px;
     max-width: 300px;
 }
+.group-icon
+{
+
+    background-color: rgba(0,0,0,0);
+}
 
 
 .list {
-    display: block;
+    display: flex;
+    justify-content: start;
     position: relative;
     background-color: #eee;
     color: #111;
@@ -96,21 +103,25 @@ fieldset legend {
 
 .list:hover,
 .buttons:hover {
-    box-shadow: 0em 0em 0em 0.2em #222;
+    box-shadow: 0em 0em 0em 0.2em #444;
 }
 .list:active,
 .buttons:active {
-    box-shadow: 0em 0em 0em 0.4em #222;
+    box-shadow: 0em 0em 0em 0.4em #444;
 }
 
 .list .text-block{
     display: inline-block;
+    flex-grow: 10;
     vertical-align: top;
     padding-left: 1em ;
 }
 
+
+
 .list > img {
     display: inline-block;
+    flex-grow: 0;
     vertical-align: top;
     padding: 0em;
     margin: 0em auto ;

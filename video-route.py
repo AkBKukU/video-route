@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+"""
+This is a program for controlling video devices remotely from a web interface. A JSON file is used to define device connections and command sequences to perform complex actions. It is stateless meaning it cannot represent data from the devices (ex, a volume slider is not possible), but this is intentional to make it easier to use from multiple client devices simultaneously.
+
+Basic usage is to just launch it with a configuration file:
+
+    video-route -c config-sample.json
+
+"""
 
 # Python System
 import argparse
@@ -19,25 +27,47 @@ json_codes = {
     "#ESC":"\x1b"
 }
 
-# External Modules
 def serialByName(name):
+    """
+    This is a wrapper to allow the user to specify serial devices by their USB name or ID and path.
 
-    # Lazy wrap both
+    You can see all serial device information for connected devices by running:
+
+        video-route -S
+
+    :param name: The name or ID and path of the serial device
+    :return: returns path to serial device or value of name if no match found
+    """
+
+    # Assume if /dev/ in string a normal serial path was provided
     if "/dev/" in name:
         return name
 
     for port in serial.tools.list_ports.comports():
+        # Match by name
         if port[1] == name:
             return port[0]
+        # Match by ID and path
         if port[2] == name:
             return port[0]
 
-    # They know better probably
+    # Return given value if no matches were found
     return name
 
 
 
-async def telnet_commands(ip,cmds,skip=0,delay=0):
+async def telnet_commands(ip,cmds,skip=0,delay=0,port=23):
+    """
+    Generic telnet wrapper for use with multiple devices. This exists to wrap the async requirement but also so that a single connection can be established for all needed commands.
+
+
+    :param ip: IP for telnet server
+    :param cmds: List of strings for all commands to execute
+    :param skip: Number of lines to read and discard when connecting to server before issuing commands
+    :param delay: Time in seconds to wait before sending next command
+    :param port: Port for telnet server
+    :return: returns response from last command
+    """
     reader, writer = await telnetlib3.open_connection(ip, 23)
 
     while skip:
@@ -57,6 +87,9 @@ async def telnet_commands(ip,cmds,skip=0,delay=0):
 
 
 class WebInterface(object):
+    """
+    Web frontend to hardware access. Generates web page based on user JSON and responds to actions by passing commands to hardware.
+    """
     try:
         # External Modules
         from flask import Flask
@@ -74,9 +107,17 @@ class WebInterface(object):
     """
 
     def __init__(self,args):
+        """
+        Construct a new 'Foo' object.
 
+        :param args: argument values from program start
+        :return: returns nothing
+        """
+
+        # Find location of this file and use it as the base path for the web server
         self.host_dir=os.path.realpath(__file__).replace(os.path.basename(__file__),"")
         self.app = self.Flask("Video Route")
+        # Logging Options
         #self.app.logger.disabled = True
         #log = logging.getLogger('werkzeug')
         #log.disabled = True
@@ -87,14 +128,15 @@ class WebInterface(object):
 
         # Define routes in class to use with flask
         self.app.add_url_rule('/','home', self.index)
-        # Define routes in class to use with flask
         self.app.add_url_rule('/system','system', self.web_system,methods=["POST"])
 
+        # Setup based on arguments
         self.host = args.ip
         self.port = args.port
         self.config_file = args.config
         self.config_init = args.reset_skip
 
+        # Define map for all supported device types for matching to JSON
         self.video_controllers = {}
         self.video_controllers["serial"] = self.cmd_serial
         self.video_controllers["telnet"] = self.cmd_telnet
@@ -102,27 +144,48 @@ class WebInterface(object):
         self.video_controllers["atem"] = self.cmd_atem
         self.video_controllers["obs"] = self.cmd_obs
 
+        # Module load information for each device type
         self.controller_modules = {}
         for video_controller, function in self.video_controllers.items():
             self.controller_modules[video_controller] = False
 
+        # Initial config load
         self.load_config()
 
+
     def load_config(self,config_file=None):
+        """
+        Load config file used to set connections to devices and define web interface.
+
+        When a new device type is loaded, if it has any module dependencies these are imported for the first time here as globals. This prevents users who don't have some less common devices, such as the Blackmagic Atem, from needed to install the dependencies for those if they won't be using them.
+
+        :param config_file: The path to the JSON configuration file.
+        :return: returns nothing
+        """
+        # Use instance file path if not provided
         if config_file is not None:
             self.config_file = config_file
 
+        # If file exists, load it
         if self.config_file is not None and os.path.exists(self.config_file):
             print("Reading from config")
             with open(self.config_file, newline='') as jsonfile:
                 self.config=json.load(jsonfile)
         else:
+            # No file provided or did not exist, warn user on web interface
             self.config={
                 "video_controllers":{
                 },
-                "sources":{}
+                "sources":{
+                    "blank":{
+                        "name":"No Configuration file Provided",
+                        "icon":"smpte",
+                        "description":"You have started the video routing program without a configuration file. You will need to create one and pass it as a parameter to the -c argument when starting the program"
+                        }
+                    }
             }
 
+        # Skip initialization commands or not
         if not self.config_init:
             for key, value in self.config["video_controllers"].items():
                 if "cmd_init" in value:
@@ -130,10 +193,9 @@ class WebInterface(object):
 
             self.config_init=True
 
-
+        # Load modules for all defined device types in JSON config
         for key, value in self.config["video_controllers"].items():
             if not self.controller_modules[value["type"]]:
-
                 match value["type"]:
                     case "serial":
                         try:
@@ -180,7 +242,11 @@ class WebInterface(object):
 
 
     async def start(self):
-        """ Run Flask in a process thread that is non-blocking """
+        """
+        Start web server in Process thread
+
+        :return: returns nothing
+        """
         print("Starting Flask")
         self.web_thread = Process(target=self.app.run,
             kwargs={
@@ -193,29 +259,46 @@ class WebInterface(object):
         self.web_thread.start()
 
     def stop(self):
-        """ Send SIGKILL and join thread to end Flask server """
+        """
+        Stop web server in Process thread
+
+        :return: returns nothing
+        """
         if hasattr(self, "web_thread") and self.web_thread is not None:
             self.web_thread.terminate()
             self.web_thread.join()
-        if hasattr(self, "rip_thread"):
-            self.rip_thread.terminate()
-            self.rip_thread.join()
 
-# Hardware commands
     def cmd_serial(self,cmds,config):
+        """
+        Send commands to serial device.
+
+        :param cmds: Commands as list of strings to send
+        :param config: Device controller configuration
+        :return: returns nothing
+        """
         line_end=config["line_end"] if "line_end" in config else ""
+        cmd_delay=config["cmd_delay"] if "cmd_delay" in config else 0
         try:
             serial_interface = serial.Serial(serialByName(config["serial"]),config["baud"],timeout=30,parity=config["parity"])
             for cmd in cmds:
                 for key, value in json_codes.items():
                     cmd = cmd.replace(key,value)
                 serial_interface.write( bytes(cmd+line_end,'ascii',errors='ignore') )
+                time.sleep(cmd_delay)
+
         except Exception as e:
             name=config["name"] if "name" in config else config["type"]
             print(f"Error with device [{name}]:" + repr(e))
 
 
     def cmd_http_get(self,cmds,config):
+        """
+        Send commands to HTTP endpoint as GET URL parameter.
+
+        :param cmds: Commands as list of strings to send
+        :param config: Device controller configuration
+        :return: returns nothing
+        """
         cmd_delay=config["cmd_delay"] if "cmd_delay" in config else 0
         try:
             for cmd in cmds:
@@ -225,22 +308,40 @@ class WebInterface(object):
                 req =  request.Request(endpoint)
                 resp = request.urlopen(req)
                 time.sleep(cmd_delay)
+
         except Exception as e:
             name=config["name"] if "name" in config else config["type"]
             print(f"Error with device [{name}]:" + repr(e))
 
 
     def cmd_telnet(self,cmds,config):
+        """
+        Send commands to telnet server.
+
+        :param cmds: Commands as list of strings to send
+        :param config: Device controller configuration
+        :return: returns nothing
+        """
         try:
             cmd_delay=config["cmd_delay"] if "cmd_delay" in config else 0
+            port=config["port"] if "port" in config else 23
             connection_skip=config["connection_skip"] if "connection_skip" in config else 0
-            asyncio.run(telnet_commands(config["ip"],cmds,skip=connection_skip,delay=cmd_delay))
+            asyncio.run(telnet_commands(config["ip"],cmds,skip=connection_skip,delay=cmd_delay,port=port))
+
         except Exception as e:
             name=config["name"] if "name" in config else config["type"]
             print(f"Error with device [{name}]:" + repr(e))
 
 
     def cmd_atem(self,cmds,config):
+        """
+        Send commands to ATEM controller over network.
+
+        :param cmds: Commands as list of of dicts with function name as key and parameters as value
+        :param config: Device controller configuration
+        :return: returns nothing
+        """
+        cmd_delay=config["cmd_delay"] if "cmd_delay" in config else 0
         try:
             switcher = PyATEMMax.ATEMMax()
             print(f'Atem Connect: {config["ip"]}')
@@ -252,13 +353,23 @@ class WebInterface(object):
                         getattr(switcher,function)(*p)
                     else:
                         print(f"Error with device [{name}]: OBS has no function [{function}]")
+                time.sleep(cmd_delay)
             switcher.disconnect()
+
         except Exception as e:
             name=config["name"] if "name" in config else config["type"]
             print(f"Error with device [{name}]:" + repr(e))
 
 
     def cmd_obs(self,cmds,config):
+        """
+        Send commands to OBS using web sockets.
+
+        :param cmds: Commands as list of of dicts with function name as key and parameters as value
+        :param config: Device controller configuration
+        :return: returns nothing
+        """
+        cmd_delay=config["cmd_delay"] if "cmd_delay" in config else 0
         try:
             client = obs.ReqClient(host=config["ip"], port=config["port"], password=config["password"], timeout=config["timeout"])
             for cmd in cmds:
@@ -267,6 +378,7 @@ class WebInterface(object):
                         getattr(client,function)(*p)
                     else:
                         print(f"Error with device [{name}]: OBS has no function [{function}]")
+                time.sleep(cmd_delay)
 
         except Exception as e:
             name=config["name"] if "name" in config else config["type"]
@@ -275,13 +387,19 @@ class WebInterface(object):
 # Endpoints
 
     def index(self):
+        """
+        Base HTML for web front end. Defines paths to common resources and calls to build main source list.
+
+        :return: returns generated HTML as string
+        """
         self.load_config()
-        """ Simple class function to send HTML to browser """
+        # HTML starts
         output=f'''
-        <head>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-	<meta name="HandheldFriendly" content="true" />
-	</head>
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="HandheldFriendly" content="true" />
 <script>
 
 function system(event) {{
@@ -304,6 +422,7 @@ function system(event) {{
 
 </script>
 <link rel="stylesheet" type="text/css" href="/static/site/style.css" ></style>
+</head>
 <body>
 <ul onclick="system(event)" >
 '''
@@ -312,29 +431,62 @@ function system(event) {{
         output+=f'''
 </ul>
 </body>
+</html>
 '''
         return output
 
 
     def build_sources(self,source,prefix=""):
+        """
+        Builds user front end based on JSON config file. Reloads config every time to allow realtime adjustment of JSON during initial setup.
+
+        Nested sources are generated as fieldsets and call this function recursively. This is the primary way of grouping related commands.
+
+        Commands are not stored in JSON data, nested key paths are stored as a custom attribute which is used to walk the dictionary path in the function that parses the web client responses.
+
+        :param source: Source data from JSON config
+        :param prefix: Identifier prefix to use for un-nesting sources
+        :return: returns generated HTML as string
+        """
         output=""
         for key, value in source.items():
 
+            # Define and custom user colors
             colors=""
             if "color" in value:
                 colors+=f'color:{value["color"]};'
             if "background" in value :
                 colors+=f'background-color:{value["background"]};'
 
+            # Allow usage of built in images as icons
+            if "icon" in value:
+                match value["icon"]:
+                    case "wide":
+                        value["icon"] = "../site/video-wide.png"
+                    case "full":
+                        value["icon"] = "../site/video-full.png"
+                    case "pixel":
+                        value["icon"] = "../site/video-pixel.png"
+                    case "crop":
+                        value["icon"] = "../site/video-crop.png"
+                    case "smpte":
+                        value["icon"] = "../site/smpte.png"
+                    case None:
+                        value["icon"] = "../site/smpte.png"
+
+            # If a dictionary is found it is a nested source list. Build a fieldset and recursively call this function again to build its sources.
             if isinstance(value, dict):
                 if "sources" in value:
                     output+=f'''
     <fieldset style="{colors}">
     '''
+                    # Hide fieldset by default if "hide" key is present and true
                     checked=""
                     if "hide" in value:
                         if value["hide"]:
                             checked="checked"
+
+                    # Use "name" key as legend for fieldset
                     if "name" in value:
                         output+=f'''
         <input type=checkbox id="{prefix+key}" {checked}/>
@@ -343,21 +495,24 @@ function system(event) {{
                     output+=f'''
         <ul>
     '''
-                    # Image Setup
+                    # Add icon if provided with source attribute to make it clickable
                     if "icon" in value:
 
                         output+=f'''
-                <li class="buttons"><img src="/static/icons/{value["icon"]}" source="{prefix+key}"></li>
+                <li class="buttons group-icon"><img src="/static/icons/{value["icon"]}" source="{prefix+key}"></li>
             '''
+                    # Recursive call to build child sources
                     output+=self.build_sources(value["sources"],prefix+key+"|")
 
                     output+=f'''
         </ul>
         '''
-                    # Text
+                    # Add description if provided
                     if "description" in value:
                         output+=f'''
         <div class="text-block" source="{prefix+key}">
+            <p class="description" source="{prefix+key}">{value["description"]}</p>
+        </div>
     '''
 
                     output+=f'''
@@ -365,6 +520,7 @@ function system(event) {{
     '''
                     continue
 
+            # If a description is present, render source as inline-block
             if "description" in value:
                 output+=f'''
     <li source="{prefix+key}" style="{colors}" class="list">
@@ -373,42 +529,29 @@ function system(event) {{
                 output+=f'''
     <li source="{prefix+key}" style="{colors}" class="buttons">
     '''
-            # Image Setup
+            # Add icon
             if "icon" in value:
-
-                if value["icon"] == "wide":
-                    value["icon"] = "../site/video-wide.png"
-                if value["icon"] == "full":
-                    value["icon"] = "../site/video-full.png"
-                if value["icon"] == "pixel":
-                    value["icon"] = "../site/video-pixel.png"
-                if value["icon"] == "crop":
-                    value["icon"] = "../site/video-crop.png"
-
-                if value["icon"] is None:
-                    # Stock Image
-                    output+=f'''
-        <img src="/static/site/smpte.png" source="{prefix+key}">
-    '''
-                else:
                     # Provided Image
                     output+=f'''
         <img src="/static/icons/{value["icon"]}" source="{prefix+key}">
     '''
+            # Add overlay image
             if "overlay" in value:
                 # Provided Image with overlay
                 output+=f'''
         <div class="overlay {value["overlay"]}" source="{prefix+key}"></div>
     '''
-            # Text
+            # Use div to group test if description provided
             if "description" in value:
                 output+=f'''
         <div class="text-block" source="{prefix+key}">
     '''
+            # Add name as header
             if "name" in value:
                 output+=f'''
         <h3 class="name" source="{prefix+key}">{value["name"]}</h3>
     '''
+            # Add description if provided
             if "description" in value:
                 output+=f'''
         <p class="description" source="{prefix+key}">{value["description"]}</p>
@@ -422,6 +565,11 @@ function system(event) {{
 
 
     def web_system(self):
+        """
+        Endpoint handler for commands from web interface
+
+        :return: returns generic response for HTTP
+        """
         data = self.request.get_json()
         pprint(data)
         if "source" in data:
@@ -431,6 +579,13 @@ function system(event) {{
 
 
     def parse_sources(self, source, config):
+        """
+        Parses delimited source command identifier to run associated commands. Recursively calls self for nested sources.
+
+        :param source: Source identifier string from web frontend
+        :param config: Source list from config
+        :return: returns nothing
+        """
 
         if source.split("|")[0] in config:
             for key, value in config[source.split("|")[0]].items():
@@ -450,7 +605,11 @@ server = None
 
 
 async def asyncLoop():
-    """ Blocking main loop to provide time for async tasks to run"""
+    """
+    Blocking main loop to provide time for async tasks to run
+
+    :return: returns nothing
+    """
     print('Blocking main loop')
     global loop_state
     while loop_state:
@@ -458,7 +617,10 @@ async def asyncLoop():
 
 
 def exit_handler(sig, frame):
-    """ Handle CTRL-C to gracefully end program and API connections """
+    """
+    Handle CTRL-C to gracefully end program and API connections
+
+    :return: returns nothing"""
     global loop_state
     print('You pressed Ctrl+C!')
     loop_state = False
@@ -466,8 +628,12 @@ def exit_handler(sig, frame):
 
 
 async def startWeb(args):
+    """
+    Asynchronously start web interface
 
-    # Internal Modules
+    :return: returns nothing
+    """
+
     global server
     server = WebInterface(args)
 
@@ -486,8 +652,10 @@ async def startWeb(args):
 
 
 def main():
-    """ Execute as a CLI and process parameters
+    """
+    Execute CLI start and process parameters
 
+    :return: returns exit code
     """
     # Setup CLI arguments
     parser = argparse.ArgumentParser(
@@ -503,6 +671,7 @@ def main():
     args = parser.parse_args()
 
 
+    # Print out information for all connected serial devices and exit
     if args.serial_names:
         try:
             import serial
@@ -522,6 +691,6 @@ def main():
     sys.exit(0)
 
 
-
 if __name__ == "__main__":
+    # Run main if script called directly
     main()
