@@ -2,7 +2,7 @@
 
 The video route program features generic support for some devices and specific support for others. How you control your device will depend on how you can interface with it. Devices are defined in the `video_controllers` section of the configuration JSON. Their key is used an identifier in any sources that send commands through them.
 
-## Example
+### Example
 All interfaces have properties that need to be filled in to use.
 
      "video_controllers":{
@@ -20,20 +20,20 @@ All interfaces have properties that need to be filled in to use.
 
 *In this case the key `rt4k` will be used to send commands to this device from sources. *
 
-#### Universal Properties
+## Universal Properties
 
 - `name`: Human readable name, used for debugging if commands fail  
 - `type`: Used to tell the software the kind of device to initialize as
 - `cmd_delay`: Delay in seconds after each command before executing next command  
 - `cmd_init` : Commands to send initialize device. Can be bypassed with the `-r` parameter
 
-## Generic Interfaces
+# Generic Interfaces
 
 Devices with generic interfaces like Extron's SiS commands can be used over different types of software interfaces defined below.
 
 All commands for generic interfaces use a command simple list `[1,2,3]` in sources.
 
-### Serial
+## Serial
 
 *Requires `pyserial` python module*
 
@@ -44,14 +44,14 @@ Device examples:
 
 Serial devices can be controlled by a local connection over a serial point. This software supports an additional method of identifying USB serial devices by using their device identifiers. Run `video-route.py -S` to see how you can access your serial devices.
 
-#### Properties
+### Properties
 
 - `baud`: Baud rate 
 - `parity`: Parity ( Use `N`, `E`, or `O`)
 - `serial`: Serial port path, device name, or ID and path values to specify how to access serial device.
 - `line_end`: Line end to postpend to all commands. Useful if all commands require carriage returns.
 
-#### Example
+### Example
 
         "crosspoint":{
             "name":"Extron 300 Crosspoint",
@@ -63,7 +63,7 @@ Serial devices can be controlled by a local connection over a serial point. This
         }
 
 
-### Telnet
+## Telnet
 
 *Requires `telnetlib3` python module*
 
@@ -74,13 +74,13 @@ Device examples:
 
 Telnet devices use a remove command line interface to accept commands. This software does not maintain a constant connection to this and instead connects, commands, and disconnects as quickly as possible. There are also some considerations that need to be taken into consideration for each telnet device interface. You will most likely want to connect to the device using a generic telnet client first to understand how to controlit.
 
-#### Properties
+### Properties
 
 - `ip` : The IP the telnet server on the device can be accessed at
 - `port` : The IP the port telnet server is listening on
 - `connection_skip` : The number of lines to discard on initial connection to the device before sending commands
 
-#### Example
+### Example
 
 Note in this example doesn't provide a port because it is assumed to be `23` if not provided.
 
@@ -93,7 +93,7 @@ Note in this example doesn't provide a port because it is assumed to be `23` if 
         }
 
 
-### HTTP GET
+## HTTP GET
 
 Device examples:
 
@@ -101,12 +101,12 @@ Device examples:
 
 If your device has a basic HTTP URL API the this method will allow you to use that as an extremely simple method of control.
 
-#### Properties
+### Properties
 
 - `ip` : The IP the server on the device can be accessed at. Port may be specified after
 - `uri` : The resource path on the server to access the command API at
 
-#### Example
+### Example
 
         "dvs510":{
             "name":"Extron DVS 510",
@@ -116,14 +116,14 @@ If your device has a basic HTTP URL API the this method will allow you to use th
         }
 
 
-## Dedicated Interfaces
+# Dedicated Interfaces
 
 Dedicated interfaces currently are implemented using device specific modules that have functions for device commands. The functions for the modules are accessed by using **string names** of the functions with parameters specifed in a list.
 
 
 All commands for generic interfaces use a command function & parameter list `[{"function1_name":["paramter1","parameter2"]},{"function2_name":["paramter1","parameter2"]}]` in sources.
 
-### ATEM
+## ATEM
 
 *Requires [`PyATEMMax`](https://pypi.org/project/PyATEMMax/) python module*
 
@@ -134,11 +134,11 @@ Device examples:
 See [list of module functions](https://clvlabs.github.io/PyATEMMax/docs/methods/set/) for more information on controlling this device type.
 
 
-#### Properties
+### Properties
 
 - `ip` : The IP the Atem device can be accessed at
 
-#### Example
+### Example
 
         "atem":{
             "name":"Atem Pro Mini ISO",
@@ -147,7 +147,7 @@ See [list of module functions](https://clvlabs.github.io/PyATEMMax/docs/methods/
         }
 
 
-### OBS
+## OBS
 
 *Requires [`obsws-python`](https://pypi.org/project/obsws-python/1.1.0/) python module*
 
@@ -156,14 +156,14 @@ See [list of module functions](https://github.com/aatikturk/obsws-python/blob/ma
 
 Web socket server must be enabled in OBS for this to work.
 
-#### Properties
+### Properties
 
 - `ip` : The IP the computer running OBS
 - `port` : The IP the port for the web socket server
 - `timeout` : Connection timeout delay
 - `password` : Password for access control
 
-#### Example
+### Example
 
         "stream-pc":{
             "name":"Streaming Computer",

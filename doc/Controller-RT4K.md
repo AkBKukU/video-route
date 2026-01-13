@@ -34,8 +34,6 @@ Here is what a group of source buttons for Power, Phase, and Gain would look lik
     "sources":{
         "rt4k-power":{
             "name":"Power",
-            "color":"#FFF",
-            "background":"#c00",
             "rt4k-example":["remote pwr","pwr on"]
             },
         "rt4k-phase":{
@@ -63,22 +61,82 @@ A note, the consolemods wiki states you need to continously run `SVS CURRENT INP
 
 With all that, you can make profile switching sources in the following way:
 
-    "rt4k-profiles":{
-        "name":"Profiles",
-        "sources":{
-            "svs-10":{
-                "name":"SNES 256",
-                "rt4k-example":["SVS NEW INPUT=10"]
-                },
-            "svs-11":{
-                "name":"SNES 512",
-                "rt4k-example":["SVS NEW INPUT=11"]
-                },
-            "svs-12":{
-                "name":"N64",
-                "rt4k-example":["SVS NEW INPUT=12"]
+    "sources":{
+        "svs-10":{
+            "name":"SNES 256",
+            "rt4k-example":["SVS NEW INPUT=10"]
+            },
+        "svs-11":{
+            "name":"SNES 512",
+            "rt4k-example":["SVS NEW INPUT=11"]
+            },
+        "svs-12":{
+            "name":"N64",
+            "rt4k-example":["SVS NEW INPUT=12"]
+            }
+        }
+    }
+
+## Full Config File
+
+Putting it all together using source groups we can generate the front end shown in the image above with the following JSON, which you can also [find here](examples/rt4k.json).
+
+    {
+    "video_controllers":{
+        "rt4k-example":{
+            "name":"Retrotink 4K",
+            "type":"serial",
+            "baud":115200,
+            "parity":"N",
+            "serial":"FT232R USB UART - FT232R USB UART",
+            "cmd_delay":0,
+            "line_end":"\n"
+        }
+    },
+    "sources":{
+        "rt4k":{
+            "name":"Retrotink 4K",
+            "sources":{
+                "rt4k-buttons":{
+                    "name":"Controls",
+                    "sources":{
+                        "rt4k-power":{
+                            "name":"Power",
+                            "color":"#FFF",
+                            "background":"#c00",
+                            "rt4k-example":["remote pwr","pwr on"]
+                            },
+                        "rt4k-phase":{
+                            "name":"Phase",
+                            "rt4k-example":["remote phase"]
+                            },
+                        "rt4k-gain":{
+                            "name":"Gain",
+                            "rt4k-example":["remote gain"]
+                            }
+                        }
+                    },
+
+                "rt4k-profiles":{
+                    "name":"Profiles",
+                    "sources":{
+                        "svs-10":{
+                            "name":"SNES 256",
+                            "rt4k-example":["SVS NEW INPUT=10"]
+                            },
+                        "svs-11":{
+                            "name":"SNES 512",
+                            "rt4k-example":["SVS NEW INPUT=11"]
+                            },
+                        "svs-12":{
+                            "name":"N64",
+                            "rt4k-example":["SVS NEW INPUT=12"]
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 
+You'll notice that the `rt4k-buttons` and `rt4k-profiles` groups are used to structure the interface. The `rt4k-power` source also has color options defined to make the button red. You can find more info about that in the full [Sources Documentation](./Sources.md).

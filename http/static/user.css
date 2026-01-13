@@ -5,24 +5,24 @@
 body{
     background-color:#000;
 }
-fieldset legend {
+.group legend {
     background-color: #222;
     color: #ddd;
 }
 
-fieldset > input[type=checkbox]:checked + legend
+.group > input[type=checkbox]:checked + legend
 {
     background-color: #a00;
     color: #ddd;
 }
 
-fieldset {
+.group {
     color: #ddd;
     border: 1px solid #111;
     background-color: #333;
 }
 
-.buttons,
+.button,
 .list {
     background-color: #555;
     color: #ddd;

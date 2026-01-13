@@ -21,6 +21,20 @@ import asyncio
 import signal
 from multiprocessing import Process
 
+
+# External Modules
+try:
+    from flask import Flask
+    from flask import Response
+    from flask import request
+    from flask import send_file
+    from flask import redirect
+    from flask import make_response
+    from flask import send_from_directory
+except Exception as e:
+        print("Need to install Python module [flask]")
+        sys.exit(1)
+
 # JSON doesn't support all escape sequences this is a substitute list to add some
 json_codes = {
     "#CR":"\r",
@@ -90,21 +104,6 @@ class WebInterface(object):
     """
     Web frontend to hardware access. Generates web page based on user JSON and responds to actions by passing commands to hardware.
     """
-    try:
-        # External Modules
-        from flask import Flask
-        from flask import Response
-        from flask import request
-        from flask import send_file
-        from flask import redirect
-        from flask import make_response
-        from flask import send_from_directory
-    except Exception as e:
-            print("Need to install Python module [flask]")
-            sys.exit(1)
-    """Web interface for managing rips
-
-    """
 
     def __init__(self,args):
         """
@@ -116,7 +115,7 @@ class WebInterface(object):
 
         # Find location of this file and use it as the base path for the web server
         self.host_dir=os.path.realpath(__file__).replace(os.path.basename(__file__),"")
-        self.app = self.Flask("Video Route")
+        self.app = Flask("Video Route")
         # Logging Options
         #self.app.logger.disabled = True
         #log = logging.getLogger('werkzeug')
@@ -399,16 +398,14 @@ class WebInterface(object):
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=0.7, user-scalable=no" />
 <meta name="HandheldFriendly" content="true" />
 <script>
-
 function system(event) {{
-        if ("source" in event.target.attributes)
-        {{
-            data={{"source":event.target.attributes.source.nodeValue}}
-        }}
-
+    if ("source" in event.target.attributes)
+    {{
+        data={{"source":event.target.attributes.source.nodeValue}}
+    }}
 	fetch("/system", {{
 		method: 'post',
 	   headers: {{
@@ -420,18 +417,17 @@ function system(event) {{
 		// Do Nothing
 	}});
 }};
-
 </script>
 <link rel="stylesheet" type="text/css" href="/static/site/style.css" ></style>
 <link rel="stylesheet" type="text/css" href="/static/user.css" ></style>
 </head>
 <body>
-<ul onclick="system(event)" >
+<div class="sources" onclick="system(event)" >
 '''
         output+=self.build_sources(self.config["sources"])
 
         output+=f'''
-</ul>
+</div>
 </body>
 <script type="text/javascript" src="/static/user.js"></script>
 </html>
@@ -481,7 +477,7 @@ function system(event) {{
             if isinstance(value, dict):
                 if "sources" in value:
                     output+=f'''
-    <fieldset style="{colors}">
+    <fieldset class="group" style="{colors}">
     '''
                     # Hide fieldset by default if "hide" key is present and true
                     checked=""
@@ -496,19 +492,19 @@ function system(event) {{
         <legend><label for="{prefix+key}">{value["name"]}</label></legend>
     '''
                     output+=f'''
-        <ul>
+        <div class="sources">
     '''
                     # Add icon if provided with source attribute to make it clickable
                     if "icon" in value:
 
                         output+=f'''
-                <li class="buttons group-icon"><img src="/static/icons/{value["icon"]}" source="{prefix+key}"></li>
+                <div class="button group-icon"><img src="/static/icons/{value["icon"]}" source="{prefix+key}"></div>
             '''
                     # Recursive call to build child sources
                     output+=self.build_sources(value["sources"],prefix+key+"|")
 
                     output+=f'''
-        </ul>
+        </div>
         '''
                     # Add description if provided
                     if "description" in value:
@@ -526,23 +522,17 @@ function system(event) {{
             # If a description is present, render source as inline-block
             if "description" in value:
                 output+=f'''
-    <li source="{prefix+key}" style="{colors}" class="list">
+    <div source="{prefix+key}" style="{colors}" class="list">
     '''
             else:
                 output+=f'''
-    <li source="{prefix+key}" style="{colors}" class="buttons">
+    <div source="{prefix+key}" style="{colors}" class="button">
     '''
             # Add icon
             if "icon" in value:
                     # Provided Image
                     output+=f'''
         <img src="/static/icons/{value["icon"]}" source="{prefix+key}">
-    '''
-            # Add overlay image
-            if "overlay" in value:
-                # Provided Image with overlay
-                output+=f'''
-        <div class="overlay {value["overlay"]}" source="{prefix+key}"></div>
     '''
             # Use div to group test if description provided
             if "description" in value:
@@ -561,7 +551,7 @@ function system(event) {{
         </div>
     '''
             output+=f'''
-    </li>
+    </div>
     '''
 
         return output

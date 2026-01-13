@@ -3,58 +3,39 @@ body{
     padding: 0.5em;
 }
 
-h3 {
-    font-family: sans-serif;
-    margin: 0em;
-}
-ul {
-    padding: 0em;
-    margin: 0em;
+.sources
+{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 0.5em;
 }
 
-fieldset > ul > li.buttons,
-fieldset > ul > li.list
+.sources img
 {
-    margin: 0.25em 0em;
-    padding: 0.5em 1em;
+    align-self: center;
 }
-fieldset > input[type=checkbox]
+
+
+.group > input[type=checkbox]
 {
     display: none;
 }
 
-fieldset > input[type=checkbox]:checked + legend
+.group > input[type=checkbox]:checked + legend
 {
-    background-color: #f00;
+    background-color: #c00;
+    color: #fff;
 }
 
-fieldset > input[type=checkbox]:checked + legend + ul
+.group > input[type=checkbox]:checked + legend + .sources,
+.group > input[type=checkbox]:checked + legend + .sources + .text-block
 {
     display: none;
     max-height: 1em;
 }
 
-fieldset {
-    display: block;
-    position: relative;
-    padding: 0em;
-    background-color: #aaa;
-    color: #111;
-    padding: 0.5em;
-    margin: 0em;
-    border: 1px solid #111;
-    border-radius: 1em;
-    text-align: left;
-    vertical-align: top;
-}
-fieldset+li.list,
-fieldset+li.buttons,
-fieldset+fieldset,
-li+li.buttons
-{
-    margin-top:0.5em;
-}
-fieldset legend {
+.group legend {
     background-color: #ccc;
     color: #111;
     padding: 0em 1em;
@@ -62,162 +43,80 @@ fieldset legend {
 
 }
 
-.buttons {
-    display: inline-block;
+.group {
+    flex-basis: 100%;
     position: relative;
-    background-color: #eee;
+    background-color: #aaa;
     color: #111;
-    padding: 1em;
+    padding: 0.5em;
+    margin: 0em;
+    border: 1px solid #111;
     border-radius: 1em;
-    text-align: center;
-    vertical-align: top;
 }
 
-.buttons > img {
-    display: block;
-    padding: 0em;
-    margin: 0em auto ;
-    margin-bottom: 0.5em ;
-    max-height: 100px;
-    max-width: 300px;
-}
-.buttons.group-icon
+.button.group-icon
 {
     background-color: rgba(0,0,0,0);
 }
 
 
-.list {
-    display: flex;
-    justify-content: start;
-    position: relative;
-    background-color: #eee;
-    color: #111;
-    padding: 1em;
-    border-radius: 1em;
-    text-align: left;
-    vertical-align: top;
-}
 
 .list:hover,
-.buttons:hover {
-    box-shadow: 0em 0em 0em 0.2em #444;
+.button:hover {
+    box-shadow: 0em 0em 0em 0.2em #555;
 }
 .list:active,
-.buttons:active {
-    box-shadow: 0em 0em 0em 0.4em #444;
-}
-
-.list .text-block{
-    display: inline-block;
-    flex-grow: 10;
-    vertical-align: top;
-    padding-left: 1em ;
+.button:active {
+    box-shadow: 0em 0em 0em 0.4em #555;
 }
 
 
 
-.list > img {
-    display: inline-block;
-    flex-grow: 0;
-    vertical-align: top;
-    padding: 0em;
-    margin: 0em auto ;
-    margin-bottom: 0.5em ;
+.button {
+    background-color: #eee;
+    color: #111;
+    padding: 0.5em 1em ;
+    border-radius: 1em;
+    text-align: center;
+}
+
+.button > img {
+    display: block;
     max-height: 100px;
     max-width: 300px;
 }
 
-.overlay {
-    position: absolute;
-    vertical-align: top;
-    top:0px;
-    left:0px;
-    height: 100px;
-    width: 100%;
-
-}
-
-.pixel
+.name
 {
-    background: no-repeat url('/static/site/video-pixel.png');
-    background-position: center;
+    font-family: sans-serif;
+    margin: 0em;
 }
-.pixel-hover:hover
+.description
 {
-    background: no-repeat url('/static/site/video-pixel.png');
-    background-position: center;
-}
-
-.list > .pixel
-{
-    background-position: right;
-}
-.list > .pixel-hover:hover
-{
-    background-position: right;
+    margin: 0.5em;
 }
 
 
-.full
-{
-    background: no-repeat url('/static/site/video-full.png');
-    background-position: center;
-}
-.full-hover:hover
-{
-    background: no-repeat url('/static/site/video-full.png');
-    background-position: center;
+.list {
+    flex-basis: 100%;
+    background-color: #eee;
+    color: #111;
+    padding: 1em;
+    border-radius: 1em;
+
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    gap: 0.5em;
 }
 
-.list > .full
-{
-    background-position: right;
-}
-.list > .full-hover:hover
-{
-    background-position: right;
+.list > img {
+    max-height: 100px;
+    max-width: 300px;
 }
 
-
-.wide
-{
-    background: no-repeat url('/static/site/video-wide.png');
-    background-position: center;
-}
-.wide-hover:hover
-{
-    background: no-repeat url('/static/site/video-wide.png');
-    background-position: center;
-}
-
-.list > .wide
-{
-    background-position: right;
-}
-.list > .wide-hover:hover
-{
-    background-position: right;
-}
-
-
-
-.crop
-{
-    background: no-repeat url('/static/site/video-crop.png');
-    background-position: center;
-}
-.crop-hover:hover
-{
-    background: no-repeat url('/static/site/video-crop.png');
-    background-position: center;
-}
-
-.list > .crop
-{
-    background-position: right;
-}
-.list > .crop-hover:hover
-{
-    background-position: right;
+.list .text-block{
+    flex: 1 1 300px;
+    max-width: 100%;
+    min-width: 300px;
 }

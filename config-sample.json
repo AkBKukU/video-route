@@ -124,16 +124,24 @@
 			    },
             "dtp-scale":{
                 "sources":{
-			"dtp84-full":{
-			    "name":"Scale Full",
-			    "dtp84":["#ESC3,0*0*1920*1080XIMG#CR"]
-			    },
-			"dtp84-43":{
-			    "name":"Scale 4:3",
-			    "dtp84":["#ESC3,300*0*1320*1080XIMG#CR"]
+                "dtp84-full":{
+                    "icon":"wide",
+                    "name":"Scale Wide",
+                    "dtp84":["#ESC3,0*0*1920*1080XIMG#CR"]
+                    },
+                "dtp84-43":{
+                    "icon":"full",
+                    "name":"Scale 4:3",
+                    "dtp84":["#ESC3,300*0*1320*1080XIMG#CR"]
+                    }
 			    }
-			    }
-			    }
+            },
+            "dtp-more":{
+                "name":"Information",
+                "hide":true,
+                "description":"The Extron DTP Crosspoint 84 is a hybrid of switcher, scaler, and transmitter/receiver of HDMI signals.",
+                "sources":{}
+            }
 		}
 	},
         "hdmi-capture":{
@@ -153,6 +161,7 @@
         "snes":{
             "icon":"Super Nintendo Entertainment System.png",
             "background":"#a9c",
+            "description":"The SNES normally renders in a 256px framebuffer mode. But it can also render in a pixel double mode for 512px. Horizontally this is done with a hack by shifting the pixel clock by 180 degrees phase (half a pixel) every other frame. This causes blending between pixels and is very difficult to acurately capture.",
             "sources":{
                 "snes512":{
                     "rt4k":["remote prof1"],
@@ -172,6 +181,8 @@
             },
         "n64":{
             "background":"#aca",
+            "name":"240p, 480i, scaled",
+            "description":"The N64 has internal scaling which can make the video output look blury as if the sample rate is wrong. This is expected behavior and nothing can be done about it. You need to capture the full pixel frame output and accept what you get.",
             "icon":"Nintendo 64.png",
             "in1606":["1!#CR","1*4\\#CR","2*A#CR"],
             "dtp84":["2*1!#CR","2*2!#CR","2*3!#CR"],
@@ -179,10 +190,11 @@
             },
         "dc":{
             "background":"#cba",
-            "icon":"Sega Dreamcast.png",
-            "in1606":["1!#CR","1*4\\#CR","2*A#CR"],
-            "dtp84":["2*1!#CR","2*2!#CR","2*3!#CR"],
-            "crosspoint":["1*1!","1*2!","1*7!","11*3!"]
-            }
+            "icon":"Sega Dreamcast.png"
+            },
+        "gen":{
+        "background":"#aac",
+        "icon":"Sega Genesis.png"
+        }
     }
 }
