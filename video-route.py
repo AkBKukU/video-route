@@ -284,6 +284,7 @@ class WebInterface(object):
                 for key, value in json_codes.items():
                     cmd = cmd.replace(key,value)
                 serial_interface.write( bytes(cmd+line_end,'ascii',errors='ignore') )
+                print(bytes(cmd+line_end,'ascii',errors='ignore'))
                 time.sleep(cmd_delay)
 
         except Exception as e:

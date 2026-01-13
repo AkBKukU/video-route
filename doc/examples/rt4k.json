@@ -1,6 +1,6 @@
 {
 "video_controllers":{
-    "rt4k":{
+    "rt4k-example":{
         "name":"Retrotink 4K",
         "type":"serial",
         "baud":115200,
@@ -12,23 +12,47 @@
 },
 "sources":{
     "rt4k":{
-        "name":"RT4K Controls",
+        "name":"Retrotink 4K",
         "sources":{
-            "rt4k-power":{
-                "name":"Power",
-                "color":"#FFF",
-                "background":"#c00",
-                "rt4k":["remote pwr","pwr on"]
+            "rt4k-buttons":{
+                "name":"Controls",
+                "sources":{
+                    "rt4k-power":{
+                        "name":"Power",
+                        "color":"#FFF",
+                        "background":"#c00",
+                        "rt4k-example":["remote pwr","pwr on"]
+                        },
+                    "rt4k-phase":{
+                        "name":"Phase",
+                        "rt4k-example":["remote phase"]
+                        },
+                    "rt4k-gain":{
+                        "name":"Gain",
+                        "rt4k-example":["remote gain"]
+                        }
+                    }
                 },
-            "rt4k-phase":{
-                "name":"Phase",
-                "rt4k":["remote phase"]
-                },
-            "rt4k-gain":{
-                "name":"Gain",
-                "rt4k":["remote gain"]
+
+            "rt4k-profiles":{
+                "name":"Profiles",
+                "sources":{
+                    "svs-10":{
+                        "name":"SNES 256",
+                        "rt4k-example":["SVS NEW INPUT=10"]
+                        },
+                    "svs-11":{
+                        "name":"SNES 512",
+                        "rt4k-example":["SVS NEW INPUT=11"]
+                        },
+                    "svs-12":{
+                        "name":"N64",
+                        "rt4k-example":["SVS NEW INPUT=12"]
+                        }
+                    }
                 }
             }
         }
     }
 }
+
