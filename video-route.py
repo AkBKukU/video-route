@@ -370,19 +370,64 @@ class WebInterface(object):
         :return: returns nothing
         """
         cmd_delay=config["cmd_delay"] if "cmd_delay" in config else 0
+        name=config["name"] if "name" in config else config["type"]
         try:
             client = obs.ReqClient(host=config["ip"], port=config["port"], password=config["password"], timeout=config["timeout"])
             for cmd in cmds:
                 for function, p in cmd.items():
                     if hasattr(client,function):
-                        getattr(client,function)(*p)
+                        data =self.function_chain(client,function,p)
+                        if data is not None:
+                            pprint(getattr(data,data.attrs()[0]))
                     else:
                         print(f"Error with device [{name}]: OBS has no function [{function}]")
                 time.sleep(cmd_delay)
 
         except Exception as e:
-            name=config["name"] if "name" in config else config["type"]
             print(f"Error with device [{name}]:" + repr(e))
+
+
+    def function_chain(self,client,function,p):
+        """
+        Recursively calls functions to pull data from client to build parent functions
+
+        :param client: Base object functions will be called on
+        :param function: base function
+        :return: returns retsult of function
+        """
+
+        if hasattr(client,function):
+            processed=[]
+            for parameter in p:
+                if isinstance(parameter, dict):
+                    # Parameter is also a function
+                    call=None
+                    attr=None
+                    resp=None
+                    for sub_function, sub_p in parameter.items():
+                        if isinstance(sub_p, dict):
+                            # Parameter to pull from function specified
+                            attr=sub_function
+                            for sub2_function, sub2_p in sub_p.items():
+                                call=sub2_function
+                                resp = self.function_chain(client,sub2_function,sub2_p)
+                        else:
+                            # Return first attribute
+                            call=sub_function
+                            resp = self.function_chain(client,sub_function,sub_p)
+                            attr=resp.attrs()[0]
+                        processed.append(getattr(resp,attr))
+                        print(f'{call} returned: {parameter}')
+                else:
+                    processed.append(parameter)
+
+            print(f'{function} calling with:')
+            pprint(processed)
+            data = getattr(client,function)(*processed)
+            return data
+        else:
+            print(f"Error [{function}] doesn't exist")
+
 
 # Endpoints
 
@@ -563,7 +608,7 @@ function system(event) {{
 
         :return: returns generic response for HTTP
         """
-        data = self.request.get_json()
+        data = request.get_json()
         pprint(data)
         if "source" in data:
             self.parse_sources(data['source'], self.config["sources"])

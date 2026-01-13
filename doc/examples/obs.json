@@ -1,0 +1,120 @@
+{
+"video_controllers":{
+        "stream-pc":{
+            "name":"Streaming Computer",
+            "type":"obs",
+            "timeout":3,
+            "password":"LMQY85v3ZT4cLzWk",
+            "ip":"127.0.0.1",
+            "port":"4455"
+        }
+},
+"sources":{
+    "rt4k":{
+        "name":"Streaming PC",
+        "sources":{
+            "scenes":{
+                "name":"Scenes",
+                "sources":{
+                    "full-screen":{
+                        "name":"Full Screen",
+                        "stream-pc":[{"set_current_program_scene":["Full Screen"]}]
+                        },
+                    "all-visible":{
+                        "name":"All Visible",
+                        "stream-pc":[{"set_current_program_scene":["All Visible"]}]
+                        }
+                    }
+                },
+            "source-control":{
+                "name":"Source Control",
+                "sources":{
+                    "cam-en":{
+                        "name":"Big A",
+                        "stream-pc":[
+                            {
+                                "set_scene_item_enabled":[
+                                    "BigSource",
+                                    {"scene_item_id":{"get_scene_item_id":[
+                                        "BigSource",
+                                        "Cam B"
+                                    ]}},
+                                    false
+                            ]},
+                            {
+                                "set_scene_item_enabled":[
+                                    "BigSource",
+                                    {"scene_item_id":{"get_scene_item_id":[
+                                        "BigSource",
+                                        "Cam A"
+                                    ]}},
+                                    true
+                            ]},
+                            {
+                                "set_scene_item_enabled":[
+                                    "Small View",
+                                    {"scene_item_id":{"get_scene_item_id":[
+                                        "Small View",
+                                        "Cam A"
+                                    ]}},
+                                    false
+                            ]},
+                            {
+                                "set_scene_item_enabled":[
+                                    "Small View",
+                                    {"scene_item_id":{"get_scene_item_id":[
+                                        "Small View",
+                                        "Cam B"
+                                    ]}},
+                                    true
+                            ]}
+                        ]
+                    },
+                    "cam-dis":{
+                        "name":"Big B",
+                        "stream-pc":[
+                            {
+                                "set_scene_item_enabled":[
+                                    "BigSource",
+                                    {"scene_item_id":{"get_scene_item_id":[
+                                        "BigSource",
+                                        "Cam A"
+                                    ]}},
+                                    false
+                            ]},
+                            {
+                                "set_scene_item_enabled":[
+                                    "BigSource",
+                                    {"scene_item_id":{"get_scene_item_id":[
+                                        "BigSource",
+                                        "Cam B"
+                                    ]}},
+                                    true
+                            ]},
+                            {
+                                "set_scene_item_enabled":[
+                                    "Small View",
+                                    {"scene_item_id":{"get_scene_item_id":[
+                                        "Small View",
+                                        "Cam A"
+                                    ]}},
+                                    true
+                            ]},
+                            {
+                                "set_scene_item_enabled":[
+                                    "Small View",
+                                    {"scene_item_id":{"get_scene_item_id":[
+                                        "Small View",
+                                        "Cam B"
+                                    ]}},
+                                    false
+                            ]}
+                        ]
+                    }
+                }
+            }
+        }
+    }
+
+}
+}

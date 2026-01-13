@@ -18,20 +18,20 @@ All interfaces have properties that need to be filled in to use.
     }
 
 
-*In this case the key `rt4k` will be used to send commands to this device from sources. *
+*In this case the key `rt4k` will be used to send commands to this device from sources.*
 
 ## Universal Properties
 
 - `name`: Human readable name, used for debugging if commands fail  
 - `type`: Used to tell the software the kind of device to initialize as
 - `cmd_delay`: Delay in seconds after each command before executing next command  
-- `cmd_init` : Commands to send initialize device. Can be bypassed with the `-r` parameter
+- `cmd_init` : Commands to send to initialize device. Can be bypassed with the `-r` parameter when launching program
 
 # Generic Interfaces
 
 Devices with generic interfaces like Extron's SiS commands can be used over different types of software interfaces defined below.
 
-All commands for generic interfaces use a command simple list `[1,2,3]` in sources.
+All commands for generic interfaces use a simple command list `["input 1","scale full","output on"]` in sources.
 
 ## Serial
 
@@ -47,7 +47,7 @@ Serial devices can be controlled by a local connection over a serial point. This
 ### Properties
 
 - `baud`: Baud rate 
-- `parity`: Parity ( Use `N`, `E`, or `O`)
+- `parity`: Parity ( Use `N`, `E`, or `O` for None, Even, and Odd respectively)
 - `serial`: Serial port path, device name, or ID and path values to specify how to access serial device.
 - `line_end`: Line end to postpend to all commands. Useful if all commands require carriage returns.
 
@@ -58,7 +58,7 @@ Serial devices can be controlled by a local connection over a serial point. This
             "type":"serial",
             "baud":9600,
             "parity":"N",
-            "serial":"USB-Serial Controller",
+            "serial":"/dev/ttyUSB0",
             "cmd_init":["#ESCZXXX"]
         }
 
@@ -72,7 +72,7 @@ Device examples:
 - Extron IN1606
 - Extron DTP Crosspoint 84
 
-Telnet devices use a remove command line interface to accept commands. This software does not maintain a constant connection to this and instead connects, commands, and disconnects as quickly as possible. There are also some considerations that need to be taken into consideration for each telnet device interface. You will most likely want to connect to the device using a generic telnet client first to understand how to controlit.
+Telnet devices use a remote command line interface to accept commands. This software does not maintain a constant connection to this and instead connects, commands, and disconnects as quickly as possible. There are also some considerations that need to be taken into consideration for each telnet device interface. You will most likely want to connect to the device using a generic telnet client first to understand how to control it.
 
 ### Properties
 
@@ -82,7 +82,7 @@ Telnet devices use a remove command line interface to accept commands. This soft
 
 ### Example
 
-Note in this example doesn't provide a port because it is assumed to be `23` if not provided.
+Note this example doesn't provide a port because it is assumed to be `23` if not provided.
 
         "in1606":{
             "name":"Extron IN1606",
@@ -121,7 +121,7 @@ If your device has a basic HTTP URL API the this method will allow you to use th
 Dedicated interfaces currently are implemented using device specific modules that have functions for device commands. The functions for the modules are accessed by using **string names** of the functions with parameters specifed in a list.
 
 
-All commands for generic interfaces use a command function & parameter list `[{"function1_name":["paramter1","parameter2"]},{"function2_name":["paramter1","parameter2"]}]` in sources.
+All commands for dedicated interfaces use a command function & parameter list `[{"function1_name":["paramter1","parameter2"]},{"function2_name":["paramter1","parameter2"]}]` in sources.
 
 ## ATEM
 
