@@ -45,5 +45,5 @@ resolution_out[0] = resolution_in[0] * scale_x
 resolution_out[1] = resolution_in[1] * scale_y
 
 
-print(f'{resolution_in[0]}x{resolution_in[1]} to {resolution_out[0]}x{resolution_out[1]} [{scale_x}:{scale_y}]')
-print(f'Offset {int((frame_x-resolution_out[0])/2)}x{int((frame_y-resolution_out[1])/2)}')
+print(f'{resolution_in[0]} x {resolution_in[1]} to {resolution_out[0]} x {resolution_out[1]} [{scale_x}:{scale_y}]')
+print(f'Offset from edge {int((frame_x-resolution_out[0])/2)} x {int((frame_y-resolution_out[1])/2)}')
