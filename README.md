@@ -6,6 +6,7 @@ A multi-device video processor controller for remotely configuring and using swi
 - **[Controllers](doc/Controllers.md)**
 - - **[Retrotink 4K](doc/Controller-RT4K.md)**
 - - **[OBS](doc/Controller-OBS.md)**
+- - **[Extron](doc/Controller-Extron.md)**
 - **[Sources](doc/Sources.md)**  
 
 ## Demo

@@ -1,0 +1,64 @@
+{
+"video_controllers":{
+    "in1606":{
+            "name":"Extron IN1606",
+            "type":"telnet",
+            "connection_skip":3,
+            "ip":"192.168.0.144",
+            "cmd_delay":0.05
+        }
+},
+"sources":{
+    "extron":{
+        "name":"Extron IN1606",
+        "sources":{
+            "inputs":{
+                "name":"Inputs",
+                "sources":{
+                    "input-1":{
+                        "name":"1",
+                        "in1606":["1!"]
+                        },
+                    "input-2":{
+                        "name":"2",
+                        "in1606":["2!"]
+                        },
+                    "input-3":{
+                        "name":"3",
+                        "in1606":["3!"]
+                        },
+                    "input-4":{
+                        "name":"4",
+                        "in1606":["4!"]
+                        },
+                    "input-5":{
+                        "name":"5",
+                        "in1606":["5!"]
+                        },
+                    "input-6":{
+                        "name":"6",
+                        "in1606":["6!"]
+                        }
+                    }
+                },
+
+            "configure":{
+                "name":"Configure",
+                "sources":{
+                    "scale-wide":{
+                        "name":"Scale Fill",
+                        "icon":"wide",
+                        "in1606":["1*A"]
+                        },
+                    "scale-follow":{
+                        "name":"Scale Follow",
+                        "icon":"full",
+                        "in1606":["2*A"]
+                        }
+                }
+            }
+        }
+    }
+
+}
+}

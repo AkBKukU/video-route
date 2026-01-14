@@ -25,7 +25,7 @@ You can access an OBS using the following configuration options.
 
 ## Simple Commands
 
-[`obsws-python`](https://pypi.org/project/obsws-python/1.1.0/) exposes WebSocket commands as Python functions. This software allos you to use dictionaries to express function calls in the JSON files. The key is the name of the function and the value should be a list containing parameter values.
+[`obsws-python`](https://pypi.org/project/obsws-python/1.1.0/) exposes WebSocket commands as Python functions. This software allows you to use dictionaries to express function calls in the JSON files. The key is the name of the function and the value should be a list containing parameter values.
 
 As a simplified example, a source that would call `print("Hello!")` would look like this:
 
@@ -63,7 +63,7 @@ For example, lets say you want to set the visibility of an item. The official We
 If you know the returned value will only have a single attribute you can pass it directly and this program will find it automatically. But if you want to manually specify the attribute to use or if it returns multiple and you need to pick one, you can put a function call into a dictionary and use the key as the attribute name.
 
 
-This means to set and item's visibility, we need to get the ID, then pass that as a parameter. Here is what that looks like for a source named `Camera Source` in a scene named `Inputs` and manually specifying the return attribute to use:
+This means to set an item's visibility, we need to get the ID, then pass that as a parameter. Here is what that looks like for a source named `Camera Source` in a scene named `Inputs` and manually specifying the return attribute to use:
 
     "camera-enable":{
         "name":"Show Camera",
