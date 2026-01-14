@@ -216,9 +216,9 @@ class WebInterface(object):
                             sys.exit(1)
                     case "http_get":
 
-                        global request
+                        global request_url
                         global parse
-                        from urllib import request, parse
+                        from urllib import request as request_url, parse
                         self.controller_modules["http_get"] = True
                     case "atem":
 
@@ -305,8 +305,8 @@ class WebInterface(object):
                 for key, value in json_codes.items():
                     cmd = cmd.replace(key,value)
                 endpoint=f'http://{config["ip"]}{config["uri"]}{cmd}'
-                req =  request.Request(endpoint)
-                resp = request.urlopen(req)
+                req =  request_url.Request(endpoint)
+                resp = request_url.urlopen(req)
                 time.sleep(cmd_delay)
 
         except Exception as e:
@@ -632,6 +632,7 @@ function system(event) {{
                     self.parse_sources(source[len(source.split("|")[0])+1:], value)
 
                 if key in self.config["video_controllers"] and self.config["video_controllers"][key]["type"] in self.video_controllers:
+                    print(f'Configuring: {key}')
                     self.video_controllers[self.config["video_controllers"][key]["type"]](value,self.config["video_controllers"][key])
 
 
