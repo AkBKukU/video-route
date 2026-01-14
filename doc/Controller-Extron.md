@@ -39,7 +39,7 @@ One final important thing, telnet relies heavily on the usage of the `[Esc]` cha
 
 ### Authentication
 
-The Extrons can have a password system set up to access the hardware. I haven't tested this, but you most likely can add the password as a command before the commands you want to send. A future version of this program may support a command prefix list to automate login by store credentials in the video controller definition.
+The Extrons can have a password system set up to access the hardware. I haven't tested this, but you most likely can add the password as a command before the commands you want to send. A future version of this program may support a command prefix list to automate login by storing credentials in the video controller definition.
 
 An FYI, the commands listed in the configuration JSON file are *not* rendered to the web page. So a password stored there would not be visible to front end users.
 
@@ -48,11 +48,11 @@ An FYI, the commands listed in the configuration JSON file are *not* rendered to
 
 Many commands are identical between Extron units which makes configuration easy if you have learned how to use one. Not all of these are guaranteed to be supported by every device but they are fairly common.
 
-###Common command concepts
+### Common command concepts
 
 - **Input Selection and Matrix Ties** [`1!`,`1*2!`] : Selecting sources and outputs is a two part command, first the numbers for the input (and output) and either a `!`,`&`, or `$` for *Video and Audio*, Video only, and Audio only respectively. Ties between inputs and outputs on matrix switchers use an asterisk (`*`) in between the input and output numbers.
 - - `!` : Select or tie **Video and Audio**
-- - `&` : Select or tie **Video only**
+- - `&` or `%` : Select or tie **Video only**
 - - `$` : Select or tie **Audio only**
 - **Auto Image** : Automatically adjusting the image can be enabled with `{#}*1A` and disabled with `{#}*0A` where `{#}` is the input number. When enabled the following commands perform different kinds of auto image adjustments.
 - - `1*A`: Auto image and stretch input to fill output frame
@@ -81,6 +81,8 @@ Many commands are identical between Extron units which makes configuration easy 
 
 If you are using a device like the IN1606 that takes different kinds of analog input types on a single RGB input. You will need to know the `Input video format` command for your device and the values that represent the different supported format. These will be completely different for each device.
 
+There are some matrix switchers like the MPX 866 that feature two discrete maxtrixes. The two matrixes cannot have video cross between them but audio can and they share the same input and output sequence numbers. As a safeguard, you tie low number inputs with video and audio using `!` like normal, but tie high number video and audio ties are done with `%`.
+
 ## Source Commands
 
 Here is how a basic input selection could be done with the Extron commands.
@@ -103,7 +105,7 @@ Here is how a basic input selection could be done with the Extron commands.
             }
         }
 
-A more advances sequence of commands could load a preset after switching if you know what the signal will be beforehand.
+A more advanced sequence of commands could load a preset after switching if you know what the signal will be beforehand.
 
     "in1606":["1!","1*1."]
 
@@ -194,18 +196,6 @@ The following is the full configuration file for the example image at the top of
 
     }
     }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
