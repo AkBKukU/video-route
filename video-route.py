@@ -702,7 +702,7 @@ def main():
                     description='Web page remote for control video processors',
                     epilog='')
     parser.add_argument('-i', '--ip', help="Web server listening IP", default="0.0.0.0")
-    parser.add_argument('-p', '--port', help="Web server listening IP", default="5000")
+    parser.add_argument('-p', '--port', help="Web server listening port", default="5000")
     parser.add_argument('-c', '--config', help="JSON config file", default=None)
     parser.add_argument('-r', '--reset-skip', help="Do not re-initialize hardware", action='store_true')
     parser.add_argument('-S', '--serial-names', help="List serial port names", action='store_true')
