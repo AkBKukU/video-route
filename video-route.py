@@ -467,7 +467,7 @@ function system(event) {{
 <link rel="stylesheet" type="text/css" href="/static/user.css" ></style>
 </head>
 <body>
-<div class="sources" onclick="system(event)" >
+<div class="sources" >
 '''
         output+=self.build_sources(self.config["sources"])
 
@@ -543,7 +543,7 @@ function system(event) {{
                     if "icon" in value:
 
                         output+=f'''
-                <div class="button group-icon"><img src="/static/icons/{value["icon"]}" source="{prefix+key}"></div>
+                <div onclick="system(event)" class="button group-icon"><img src="/static/icons/{value["icon"]}" source="{prefix+key}"></div>
             '''
                     # Recursive call to build child sources
                     output+=self.build_sources(value["sources"],prefix+key+"|")
@@ -567,11 +567,11 @@ function system(event) {{
             # If a description is present, render source as inline-block
             if "description" in value:
                 output+=f'''
-    <div source="{prefix+key}" style="{colors}" class="list">
+    <div source="{prefix+key}" style="{colors}" onclick="system(event)" class="list">
     '''
             else:
                 output+=f'''
-    <div source="{prefix+key}" style="{colors}" class="button">
+    <div source="{prefix+key}" style="{colors}" onclick="system(event)" class="button">
     '''
             # Add icon
             if "icon" in value:
