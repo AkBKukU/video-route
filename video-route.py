@@ -184,14 +184,6 @@ class WebInterface(object):
                     }
             }
 
-        # Skip initialization commands or not
-        if not self.config_init:
-            for key, value in self.config["video_controllers"].items():
-                if "cmd_init" in value:
-                    self.video_controllers[value["type"]](value["cmd_init"],value)
-
-            self.config_init=True
-
         # Load modules for all defined device types in JSON config
         for key, value in self.config["video_controllers"].items():
             if not self.controller_modules[value["type"]]:
@@ -238,6 +230,14 @@ class WebInterface(object):
                         except Exception as e:
                             print("Need to install Python module [obsws-python]")
                             sys.exit(1)
+
+        # Skip initialization commands or not
+        if not self.config_init:
+            for key, value in self.config["video_controllers"].items():
+                if "cmd_init" in value:
+                    self.video_controllers[value["type"]](value["cmd_init"],value)
+
+            self.config_init=True
 
 
     async def start(self):
